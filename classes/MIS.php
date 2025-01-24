@@ -19,32 +19,20 @@ final class MIS
     {
         try {
             // Start building the query using the DBAL QueryBuilder
-            
+
 
             // Base query
             $this->oQueryBuilder->select(
-                'A.id AS borrower_id',
-                'A.name AS borrower_name',
-                'A.phone_no AS borrower_phone',
-                'A.email AS borrower_email',
-                'B.loan_id',
-                'B.principal_amount',
-                'B.interest_rate',
-                'B.loan_period',
-                'B.disbursed_date',
-                'B.EMI_amount',
-                'B.loan_status',
-                'SUM(C.payment_amount) AS total_payments',
-                'SUM(C.penalty_amount) AS total_penalties',
-                'SUM(C.referral_share_amount) AS total_referral_share',
-                'SUM(C.final_amount) AS total_final_amount',
-                'SUM(C.interest_paid) AS total_interest_paid',
-                'SUM(C.principal_paid) AS total_principal_paid',
-                'D.total_interest AS total_interest_reported',
-                'D.net_revenue AS net_revenue_reported',
-                'D.outstanding_principal AS outstanding_principal_reported',
-                'D.emi_count AS emi_count_reported',
-                'D.calculated_on AS revenue_report_date'
+                'A.name',
+                ' A.id',
+                'A.unique_borrower_id',
+                'D.total_interest',
+                'D.penalty_income',
+                'D.referral_expense',
+                'D.net_revenue',
+                'B.ending_principal as outstanding_principal',
+                'D.emi_count',
+                'B.loan_status'
             )
                 ->from('app_borrower_master', 'A')
                 ->join('A', 'app_loan_details', 'B', 'A.id = B.borrower_id')

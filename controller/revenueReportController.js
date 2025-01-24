@@ -109,14 +109,12 @@ $(document).ready(function () {
 
             revenueTable.row.add([
                 index + 1,
-                item.borrower_name,
-                formatAmount(item.principal_amount),
-                formatAmount(item.total_payments),
-                formatAmount(item.total_final_amount),
-                formatAmount(item.net_revenue_reported),
-                formatAmount(item.total_penalties),
-                formatAmount(item.total_referral_share), // Assuming a typo here; both values are the same
-                formatAmount(item.total_principal_paid),
+                item.name+" <b>("+item.unique_borrower_id+")</b>",
+                formatAmount(item.total_interest),
+                formatAmount(item.penalty_income),
+                formatAmount(item.referral_expense),
+                formatAmount(item.net_revenue),
+                formatAmount(item.outstanding_principal),
 
                 `<span style="color: ${statusColor};">${item.loan_status}</span>`,
                 item.revenue_report_date

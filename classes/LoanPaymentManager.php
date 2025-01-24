@@ -192,7 +192,7 @@ final class LoanPaymentManager
     }
 
     // Get all loan payments globally
-    public function getAllLoanPaymentsGlobal($name = '', $paymentReceivedDate = '', $paymentMode = '')
+    public function getAllLoanPaymentsGlobal($name = '', $dFromDate = '',$dToDate='', $paymentMode = '')
     {
         $sTableName = "app_borrower_loan_payments";
         $sJoinTableLoanDetails = "app_loan_details";
@@ -205,7 +205,7 @@ final class LoanPaymentManager
                 ->leftJoin('A', $sJoinTableLoanDetails, 'B', 'B.loan_id = A.loan_id AND B.deleted = 0')
                 ->leftJoin('B', $sJoinTableBorrowerMaster, 'C', 'C.id = B.borrower_id')
                 ->where('A.deleted = 0')
-                ->orderBy('received_date', 'DESC');;
+                ->orderBy('added_on', 'DESC');;
     
             // Add name filter if provided
             if ($name) {
@@ -214,9 +214,11 @@ final class LoanPaymentManager
             }
     
             // Add payment received date filter if provided
-            if ($paymentReceivedDate) {
-                $this->oQueryBuilder->andWhere('A.received_date = :received_date')
-                    ->setParameter('received_date', $paymentReceivedDate);
+            if ($dFromDate != '' && $dToDate != '') {
+                $this->oQueryBuilder
+                    ->andWhere('A.received_date between :sFromDate and :sToDate')
+                    ->setParameter('sFromDate', $dFromDate)
+                    ->setParameter('sToDate', $dToDate);
             }
     
             // Add payment mode filter if provided

@@ -10,6 +10,7 @@ require_once "../classes/LoanPaymentManager.php";
 include_once "../classes/clientCode.php";
 include_once "../classes/sessionManager.php";
 include_once "../classes/class.Input.php";
+include_once "../classes/LoanManager.php";
 
 $sFlag = Input::request('sFlag');
 $response = array('status' => 'error', 'message' => 'Invalid request');
@@ -76,10 +77,11 @@ try {
             $iLimit = Input::request('iLimit');
             $sName = Input::request('name')??'';
             $sAmount = Input::request('amount')??'';
-            $dDate = Input::request('date')??'';
+            $dFromDate = Input::request('sFromDate')??'';
+            $dToDate = Input::request('sToDate')??'';
 
 
-            $aBorrowers = $borrowerManage->getAllBorrowerDetails($sName,$sAmount,$dDate);
+            $aBorrowers = $borrowerManage->getAllBorrowerDetails($sName,$sAmount,$dFromDate,$dToDate);
             $aData = array();
             foreach ($aBorrowers as $key => $iEle) {
                 $totalInterest =( new LoanPaymentManager())->getTotalInterestPaidByLoanId($iEle['loan_id']);
@@ -101,10 +103,12 @@ try {
             $borrowerId = Input::request('id');
             if ($borrowerId) {
                 $aBorrower = $borrowerManage->getBorrowerById($borrowerId);
+                $aLoanDetails = (new LoanManager())->getAllLoans($borrowerId);
                 $aDocumentData = (new DocumentManager())->getAllDocumentsByBorrowerId($aBorrower['id']);
                 $aData = [
                     "borrowerDetails" => $aBorrower,
-                    "uploadedDocuments" => $aDocumentData
+                    "uploadedDocuments" => $aDocumentData,
+                    "loanDetails" => $aLoanDetails
                 ];
                 if ($aBorrower) {
                     $response['status'] = 'success';

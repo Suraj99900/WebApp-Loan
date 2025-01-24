@@ -19,15 +19,27 @@ final class BorrowerManager
         $sTableName = "app_borrower_master";
 
         try {
+            $this->oQueryBuilder
+                ->select("COUNT(id) AS count")
+                ->from($sTableName);
+
+            $oResult = $this->oQueryBuilder->executeQuery();
+            $aRows = $oResult->fetchAllAssociative();
+            $borrowerCount = $aRows[0]['count'] + 1;
+            $uniqueBorrowerId = 'BU-' . str_pad($borrowerCount, 2, '0', STR_PAD_LEFT); 
+    
+            
             // Build the query
             $this->oQueryBuilder->insert($sTableName)
                 ->values([
+                    'unique_borrower_id' => ':unique_borrower_id',
                     'name' => ':name',
                     'phone_no' => ':phone_no',
                     'gender' => ':gender',
                     'email' => ':email',
                     'address' => ':address'
                 ])
+                ->setParameter('unique_borrower_id', $uniqueBorrowerId)
                 ->setParameter('name', $aBorrowerData['name'])
                 ->setParameter('phone_no', $aBorrowerData['phone_no'])
                 ->setParameter('gender', $aBorrowerData['gender'])
@@ -58,6 +70,7 @@ final class BorrowerManager
             $this->oQueryBuilder
                 ->select(
                     'A.id',
+                    'A.unique_borrower_id',
                     'A.name',
                     'A.phone_no',
                     'A.gender',
@@ -180,7 +193,7 @@ final class BorrowerManager
         }
     }
 
-    public function getAllBorrowerDetails($sName='', $amount='', $date='')
+    public function getAllBorrowerDetails($sName='', $amount='', $sFromDate='',$sToDate = '')
     {
 
         try {
@@ -188,6 +201,7 @@ final class BorrowerManager
             $this->oQueryBuilder
                 ->select(
                     'A.id',
+                    'A.unique_borrower_id',
                     'A.name',
                     'A.phone_no',
                     'A.gender',
@@ -198,7 +212,12 @@ final class BorrowerManager
                     'C.ref_name',
                     'C.ref_percentage',
                     'C.ref_phone_number',
-                    'D.*'
+                    'MAX(D.disbursed_date) as disbursed_date',
+                    'MAX(D.closure_date) as closure_date',
+                    'D.closure_date',
+                    'D.loan_id',
+                    " CASE WHEN MAX(CASE WHEN D.loan_status = 'active' THEN 1 ELSE 0 END) = 1 THEN 'active' ELSE D.loan_status END AS loan_status",
+                    'sum(D.principal_amount) as total_principal'
                 )
                 ->from('app_borrower_master', 'A')
                 ->leftJoin('A', 'app_borrower_ref_map', 'B', 'A.id = B.borrower_id and B.deleted = 0')
@@ -206,7 +225,8 @@ final class BorrowerManager
                 ->leftJoin('A', 'app_loan_details', 'D', 'D.borrower_id = A.id AND D.status = 1 AND D.deleted = 0')
                 ->where('A.status = 1')
                 ->andWhere('A.deleted = 0')
-                ->orderBy('D.loan_status', 'ASC');;
+                ->groupBy('A.unique_borrower_id')
+                ->orderBy('D.added_on', 'DESC');
 
             if($sName!=''){
                 $this->oQueryBuilder
@@ -220,11 +240,12 @@ final class BorrowerManager
                     ->setParameter('amount', $amount);
             }
     
-            if($date != ''){
+            if (!empty($sFromDate) && !empty($sToDate)) {
                 $this->oQueryBuilder
-                    ->andWhere('D.disbursed_date = :date')
-                    ->setParameter('date', $date);
-            }
+                    ->andWhere('D.disbursed_date BETWEEN :sFromDate AND :sToDate')
+                    ->setParameter('sFromDate', $sFromDate)
+                    ->setParameter('sToDate', $sToDate);
+            }        
 
             // Execute the query
             $oResult = $this->oQueryBuilder->executeQuery();

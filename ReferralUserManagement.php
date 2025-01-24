@@ -107,7 +107,7 @@ include_once "leftBar.php";
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-        <form id="addReferralForm"  method="POST" enctype="multipart/form-data">
+        <form id="addReferralForm" method="POST" enctype="multipart/form-data">
             <!-- Referral Details -->
             <div class="row">
                 <div class="col-lg-4 col-sm-12 mb-3">
@@ -230,7 +230,19 @@ include_once "leftBar.php";
 <?php include_once "CDN_Footer.php"; ?>
 
 <script>
+    $(document).ready(function() {
+        // Export to Excel
+        $('#exportReferralExcel').on('click', function() {
+            var sName = $('#filterReferralName').val();
+            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=excel&name='+sName;
+        });
 
+        // Export to PDF
+        $('#exportReferralPDF').on('click', function() {
+            var sName = $('#filterReferralName').val();
+            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=pdf&name='+sName;
+        });
+    });
 </script>
 
 <script src="controller/referralUserController.js"></script>

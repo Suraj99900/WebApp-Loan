@@ -4,14 +4,16 @@ $(document).ready(function () {
     $('#filterRefresh').on('click', function () {
         $('#filterBorrowerName').val("");
         $('#filterLoanAmount').val("");
-        $('#filterLoanDate').val("");
+        $('#filterFromDate').val("");
+        $('#filterToDate').val("");
         fetchAllBorrowerDetails("");
     });
     $('#searchId').on('click', () => {
         const nameFilter = $('#filterBorrowerName').val();
         const amountFilter = $('#filterLoanAmount').val();
-        const dateFilter = $('#filterLoanDate').val();
-        fetchAllBorrowerDetails(nameFilter, amountFilter, dateFilter);
+        const sFromDateFilter = $('#filterFromDate').val();
+        const sToDateFilter = $('#filterToDate').val();
+        fetchAllBorrowerDetails(nameFilter, amountFilter, sFromDateFilter, sToDateFilter);
     });
 
 
@@ -32,12 +34,18 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     const borrower = response.data.borrowerDetails; // Main borrower details
                     const documents = response.data.uploadedDocuments; // Uploaded documents array
+                    const aLoanDetails = response.data.loanDetails;
 
                     // Construct Borrower Details in Rows
                     let content = `
                         <h5 class="mt-2">Borrower Information</h5>
                         <div class="row g-4 mb-4 p-2 shadow-sm">
-                            <div class="col-md-6"><b>Name:</b> ${borrower.name}</div>
+                            <div class="col-md-12"> 
+                                <button class="btn btn-danger btn-sm icon-box ExportUserInformation float-end" id="loanAgreementId" data-id="${borrower.id}" data-loan-id="${borrower.id}" title="Export User Information">
+                                    <i class="fa-solid fa-file-contract"></i>
+                                </button> 
+                            </div>
+                            <div class="col-md-6"><b>Name:</b> ${borrower.name} (<b>${borrower.unique_borrower_id}</b>)</div>
                             <div class="col-md-6"><b>Phone:</b> ${borrower.phone_no}</div>
                             <div class="col-md-6"><b>Email:</b> ${borrower.email}</div>
                             <div class="col-md-6"><b>Gender:</b> ${borrower.gender}</div>
@@ -45,15 +53,26 @@ $(document).ready(function () {
                         </div>
     
                         <h5 class="mt-2">Loan Information</h5>
-                        <div class="row g-4 mb-4 p-2 shadow-sm">
-                            <div class="col-md-6"><b>Principal Amount:</b> ${formatAmount(borrower.principal_amount) || '-'}</div>
-                            <div class="col-md-6"><b>Interest Rate:</b> ${borrower.interest_rate || '-'}%</div>
-                            <div class="col-md-6"><b>EMI Amount:</b> ${formatAmount(borrower.EMI_amount) || '-'}</div>
-                            <div class="col-md-6"><b>Loan Period:</b> ${borrower.loan_period || '-'} months</div>
-                            <div class="col-md-6"><b>Disbursed Date:</b> ${borrower.disbursed_date || '-'}</div>
-                            <div class="col-md-6"><b>Closure Date:</b> ${borrower.closure_date || '-'}</div>
-                            <div class="col-md-6"><b>Loan Status:</b> ${borrower.loan_status || '-'}</div>
-                        </div>
+                        ${aLoanDetails.length > 0 ? `
+                         ${aLoanDetails.map(aLoan => `
+                            <div class="row g-4 mb-4 p-2 shadow-sm">
+                                <div class="col-md-12"> 
+                                    <button class="btn btn-primary btn-sm icon-box mx-2 loanAgreementClass float-end" id="loanAgreementId" data-id="${borrower.id}" data-loan-id="${aLoan.loan_id}" title="Export Agreement PDF">
+                                        <i class="fa-solid fa-file-contract"></i>
+                                    </button> 
+                                </div>
+                                <div class="col-md-6"><b>Principal Amount:</b> ${formatAmount(aLoan.principal_amount) || '-'}</div>
+                                <div class="col-md-6"><b>Interest Rate:</b> ${aLoan.interest_rate || '-'}%</div>
+                                <div class="col-md-6"><b>Interest Amount:</b> ${formatAmount(aLoan.EMI_amount) || '-'}</div>
+                                <div class="col-md-6"><b>Loan Period:</b> ${aLoan.loan_period || '-'} months</div>
+                                <div class="col-md-6"><b>Disbursed Date:</b> ${aLoan.disbursed_date ? moment(aLoan.disbursed_date).format('MMM DD YYYY') : '-'}</div>
+                                <div class="col-md-6"><b>Closure Date:</b> ${aLoan.closure_date ? moment(aLoan.closure_date).format('MMM DD YYYY') : '-'}</div>
+                                <div class="col-md-6"><b>Loan Status:</b> ${aLoan.loan_status.toUpperCase() || '-'}</div>
+                                
+                            </div>
+                            `).join('')}
+                            ` : `<p class="text-danger">No Loan Present.</p>`}
+                    
     
                         <h5 class="mt-2">Referral Information</h5>
                         <div class="row g-4 mb-4 p-2 shadow-sm">
@@ -79,6 +98,7 @@ $(document).ready(function () {
                     $('#borrowerViewContent').html(content);
                     const offcanvas = new bootstrap.Offcanvas($('#viewBorrowerOffcanvas'));
                     offcanvas.show();
+                    eventClick();
                 } else {
                     $('#borrowerViewContent').html('<p class="text-danger">Failed to load borrower details.</p>');
                 }
@@ -188,7 +208,7 @@ $(document).ready(function () {
                         $('#fileInputsContainerForUpdate').append(newFileInput);
                     });
                 } else {
-                    alert('Failed to load borrower details.');
+                    responsePop('Error', 'Failed to load borrower details.', 'error', 'ok');
                 }
             }
         });
@@ -206,9 +226,9 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.status === 'success') {
                         $(`.document-item[data-doc-id="${documentId}"]`).remove(); // Remove document from UI
-                        alert('Document deleted successfully.');
+                        responsePop('Success', 'Document deleted successfully.', 'success', 'ok');
                     } else {
-                        alert('Failed to delete document.');
+                        responsePop('Error', 'Failed to delete document.', 'error', 'ok');
                     }
                 }
             });
@@ -230,10 +250,11 @@ $(document).ready(function () {
             contentType: false,
             success: function (response) {
                 if (response.status === 'success') {
-                    alert('Borrower updated successfully.');
+                    responsePop('Success', "Borrower updated successfully.", 'success', 'ok');
+
                     location.reload(); // Reload page or refresh table
                 } else {
-                    alert('Failed to update borrower.');
+                    responsePop('Error', 'Failed to update borrower.', 'error', 'ok');
                 }
             }
         });
@@ -270,15 +291,15 @@ $(document).ready(function () {
                     setTimeout(() => {
                         fetchAllBorrowerDetails();
                     }, 1000);
-                    alert('Loan details successfully added.');
+                    responsePop('Success', 'Loan details successfully added.', 'success', 'ok');
                     $('#addLoanOffcanvas').offcanvas('hide'); // Close the offcanvas
 
                 } else {
-                    alert(data.message || 'Failed to add loan details.');
+                    responsePop('Error', 'Failed to add loan details.', 'error', 'ok');
                 }
             },
             error: function () {
-                alert('An error occurred while processing the request.');
+                responsePop('Error', 'An error occurred while processing the request.', 'error', 'ok');
             }
         });
     });
@@ -305,12 +326,14 @@ $(document).ready(function () {
 
                     $('#referralSelect').html(options);
                 } else {
+                    responsePop('Error', 'No referrals found. Please add referrals first.', 'error', 'ok');
                     alert('No referrals found. Please add referrals first.');
                     $('#referralSelect').html('<option value="">-- No Referrals Available --</option>');
                 }
             },
             error: function () {
-                alert('Failed to fetch referrals.');
+                responsePop('Error', 'Failed to fetch referrals.', 'error', 'ok');
+
             }
         });
 
@@ -333,16 +356,16 @@ $(document).ready(function () {
                 const data = response;
 
                 if (data.status === 'success') {
-                    alert('Referral successfully mapped to borrower.');
+                    responsePop('Success', "Referral successfully mapped to borrower.", 'success', 'ok');
                     $('#mapReferralOffcanvas').offcanvas('hide'); // Close offcanvas
                     fetchAllBorrowerDetails();
                     // Optionally, reload the table or update UI
                 } else {
-                    alert(data.message || 'Failed to map referral to borrower.');
+                    responsePop('Error', 'Failed to map referral to borrower.', 'error', 'ok');
                 }
             },
             error: function () {
-                alert('An error occurred while processing the request.');
+                responsePop('Error', 'An error occurred while processing the request.', 'error', 'ok');
             }
         });
     });
@@ -370,12 +393,12 @@ $(document).ready(function () {
                     $('#referralUpdateSelect').html(options);
 
                 } else {
-                    alert('No referrals found. Please add referrals first.');
+                    responsePop('Error', 'No referrals found. Please add referrals first.', 'error', 'ok');
                     $('#referralUpdateSelect').html('<option value="">-- No Referrals Available --</option>');
                 }
             },
             error: function () {
-                alert('Failed to fetch referrals.');
+                responsePop('Error', 'Failed to fetch referrals.', 'error', 'ok');
             }
         });
 
@@ -398,16 +421,16 @@ $(document).ready(function () {
                 const data = response;
 
                 if (data.status === 'success') {
-                    alert('Referral successfully mapped/updated for borrower.');
+                    responsePop('Success', 'Referral successfully mapped/updated for borrower.', 'success', 'ok');
                     $('#mapReferralUpdateOffcanvas').offcanvas('hide'); // Close the offcanvas
                     // Optionally, reload the borrower table or update UI dynamically
                     fetchAllBorrowerDetails();
                 } else {
-                    alert(data.message || 'Failed to map/update referral for borrower.');
+                    responsePop('Error', 'Failed to map/update referral for borrower.', 'error', 'ok');
                 }
             },
             error: function () {
-                alert('An error occurred while processing the request.');
+                responsePop('Error', 'An error occurred while processing the request.', 'error', 'ok');
             }
         });
     });
@@ -433,23 +456,71 @@ $(document).ready(function () {
                 var data = response;
                 if (data.status == 'success') {
                     fetchAllBorrowerDetails();
-                    alert('Borrower added successfully!');
+                    responsePop('Success', "Borrower added successfully!", 'success', 'ok');
+
                     // Close the offcanvas
                     $('#AddBorrowerOffCanvasId').offcanvas('hide');
                     // Optionally, reset the form
                     $('#addBorrowerForm')[0].reset();
                 } else {
-                    alert('Failed to add borrower: ' + data.message);
+                    responsePop('Error', "Failed to add borrower:" + data.message, 'error', 'ok');
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error('Error:', textStatus, errorThrown);
-                alert('There was an error processing your request.');
+                responsePop('Error', 'There was an error processing your request', 'error', 'ok');
             }
         });
     });
 
 
+    $(document).on('click', '#addTopUpId', function () {
+        const borrowerId = $(this).data('id'); // Get the Borrower ID
+
+        // Set Borrower ID and Current Principal Amount in Offcanvas Form
+        $('#hiddenBorrowerTopUpId').val(borrowerId);
+
+        // Open the Offcanvas
+
+        const offcanvas = new bootstrap.Offcanvas($('#topUpLoanOffcanvas'));
+        offcanvas.show();
+    });
+
+
+    $('#topUpLoanForm').on('submit', function (e) {
+        e.preventDefault(); // Prevent the default form submission behavior
+
+        const formData = $(this).serialize(); // Serialize form data
+
+        $.ajax({
+            url: 'ajaxFile/ajaxLoan.php?sFlag=addLoanDetails', // Change this URL as per your requirement
+            type: 'post',
+            data: formData,
+            success: function (response) {
+                const data = response;
+
+                if (data.status === 'success') {
+                    setTimeout(() => {
+                        fetchAllBorrowerDetails(); // Reload borrower details or update UI dynamically
+                    }, 1000);
+
+                    // Display a success message
+                    responsePop('Success', 'Top-Up Loan successfully added/updated.', 'success', 'ok');
+
+                    // Close the Offcanvas
+                    $('#topUpLoanOffcanvas').removeClass('show').css('visibility', 'hidden');
+                    $('body').removeClass('offcanvas-backdrop fade show'); // Remove the backdrop manually
+                } else {
+                    // Handle errors (if any)
+                    responsePop('Error', 'Failed to add/update Top-Up Loan.', 'error', 'ok');
+                }
+            },
+            error: function () {
+                // Handle server or network errors
+                responsePop('Error', 'An error occurred while processing the request.', 'error', 'ok');
+            }
+        });
+    });
 
 
 });
@@ -480,11 +551,47 @@ function eventClick() {
     $('.loanAgreementClass').on('click', function () {
         // Use 'this' to refer to the clicked element
         const borrowerId = $(this).data('id');
+        const iLoanId = $(this).data('loan-id');
         console.log('Borrower ID:', borrowerId);
         console.log($(this).data());
 
         $.ajax({
-            url: 'ajaxFile/loanAgreementPDF.php?borrower_id=' + borrowerId,
+            url: 'ajaxFile/loanAgreementPDF.php?borrower_id=' + borrowerId+"&loan_id="+iLoanId,
+            xhrFields: {
+                responseType: 'blob', // Set response type to blob for PDF
+            },
+            success: function (blob) {
+                console.log('Blob received:', blob);
+                if (!(blob instanceof Blob)) {
+                    console.error('Error: Response is not a Blob object');
+                    return;
+                }
+
+                // Create a link to download the PDF
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Loan_Agreement.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url); // Clean up
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+
+    $('.ExportUserInformation').on('click', function () {
+        // Use 'this' to refer to the clicked element
+        const borrowerId = $(this).data('id');
+        const iLoanId = $(this).data('loan-id');
+        console.log('Borrower ID:', borrowerId);
+        console.log($(this).data());
+
+        $.ajax({
+            url: 'ajaxFile/ExportUserInformationPDF.php?borrower_id=' + borrowerId+"&loan_id="+iLoanId,
             xhrFields: {
                 responseType: 'blob', // Set response type to blob for PDF
             },
@@ -513,10 +620,10 @@ function eventClick() {
 }
 
 
-function fetchAllBorrowerDetails(sName = '', sAmount = '', sDate = '') {
+function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDate = '') {
 
     $.ajax({
-        url: 'ajaxFile/ajaxBorrower.php?sFlag=fetchAllBorrowers&name=' + sName + '&amount=' + sAmount + '&date=' + sDate,
+        url: 'ajaxFile/ajaxBorrower.php?sFlag=fetchAllBorrowers&name=' + sName + '&amount=' + sAmount + '&sFromDate=' + sFromDate + '&sToDate=' + sToDate,
         type: 'get',
         processData: false,
         contentType: false,
@@ -536,13 +643,13 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sDate = '') {
 
                     dataTable.row.add([
                         index + 1,
-                        borrower.name,
+                        borrower.name + "<br> (<b>" + borrower.unique_borrower_id + "</b>)",
                         borrower.phone_no,
                         borrower.email,
-                        borrower.principal_amount || '-',
-                        borrower.disbursed_date || '',
-                        borrower.closure_date || '',
-                        borrower.loan_status || 'inactive',
+                        formatAmount(borrower.total_principal) || '-',
+                        moment(borrower.disbursed_date).format('MMM DD YYYY') || '',
+                        moment(borrower.closure_date).format('MMM DD YYYY') || '',
+                        (borrower.loan_status || 'inactive').toUpperCase(),
                         `
                             <div style="display: flex;">
                                 <button class="btn btn-primary btn-sm icon-box mx-2" id="borrowerViewId" data-id="${borrower.id}" title="View Borrower Details">
@@ -562,6 +669,10 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sDate = '') {
                                 <button class="btn btn-primary btn-sm icon-box mx-2 loanAgreementClass  ${!hasLoanDetails ? 'd-none' : ''} " id="loanAgreementId" data-id="${borrower.id}" title="Export Agreement PDF">
                                    <i class="fa-solid fa-file-contract"></i>
                                 </button>
+
+                                <button class="btn btn-primary btn-sm icon-box mx-2  ${borrower.bIsPaid != 1 ? 'd-none' : ''}"  id="addTopUpId" data-id="${borrower.id}" title="Add TopUp">
+                                    <i class="fa-solid fa-cash-register"></i>
+                                </button>
                             </div>
                         `,
                     ]);
@@ -571,12 +682,12 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sDate = '') {
                 dataTable.draw();
                 eventClick();
             } else {
-                alert('No borrowers found');
+                responsePop('Error', 'No borrowers found', 'error', 'ok');
             }
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.error('Error:', textStatus, errorThrown);
-            alert('There was an error processing your request.');
+            responsePop('Error', 'There was an error processing your request.', 'error', 'ok');
         },
     });
 }
@@ -622,12 +733,12 @@ $(document).on('click', '#borrowerUpdateLoanId', function () {
                 const offcanvas = new bootstrap.Offcanvas($('#updateLoanOffcanvas'));
                 offcanvas.show();
             } else {
-                alert('Failed to fetch loan details. Please try again.');
+                responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
             }
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.error('Error:', textStatus, errorThrown);
-            alert('Error fetching loan details.');
+            responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
         }
     });
 });
@@ -645,15 +756,16 @@ $('#updateLoanForm').on('submit', function (e) {
         data: formData,
         success: function (response) {
             if (response.status === 'success') {
-                alert('Loan details updated successfully!');
+                responsePop('Success', 'Loan details updated successfully!', 'success', 'ok');
+
                 location.reload(); // Reload the page to reflect changes (optional)
             } else {
-                alert('Failed to update loan details. Please try again.');
+                responsePop('Error', 'Failed to update loan details. Please try again.', 'error', 'ok');
             }
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.error('Error:', textStatus, errorThrown);
-            alert('Error updating loan details.');
+            responsePop('Error', 'Error updating loan details.', 'error', 'ok');
         }
     });
 });
@@ -679,6 +791,28 @@ $(document).on('change', '#loanPeriod, #disbursedDate,#loanPeriodUpdate,#disburs
         $('#closureDate').val(''); // Clear the closure date if inputs are invalid
     }
 });
+
+$(document).on('change', '#loanPeriodTopUp, #disbursedDateTopUp', function () {
+    const loanPeriod = parseInt($('#loanPeriodTopUp').val()); // Loan period in months
+    const disbursedDate = $('#disbursedDateTopUp').val(); // Disbursed date as a string
+
+    if (loanPeriod && disbursedDate) {
+        // Convert the disbursed date to a Date object
+        const disbursedDateObj = new Date(disbursedDate);
+
+        // Add loan period (in months) to the disbursed date
+        disbursedDateObj.setMonth(disbursedDateObj.getMonth() + loanPeriod);
+
+        // Format the closure date as yyyy-mm-dd
+        const closureDate = disbursedDateObj.toISOString().split('T')[0];
+
+        // Set the closure date input field
+        $('#closureDateTopUp').val(closureDate);
+    } else {
+        $('#closureDateTopUp').val(''); // Clear the closure date if inputs are invalid
+    }
+});
+
 $(document).on('change', '#loanPeriodUpdate,#disbursedDateUpdate', function () {
     const loanPeriod = parseInt($('#loanPeriodUpdate').val()); // Loan period in months
     const disbursedDate = $('#disbursedDateUpdate').val(); // Disbursed date as a string
@@ -733,10 +867,10 @@ function calculateUpdatedEMI() {
     $('#emiInterestUpdate').text(rate);
     $('#emiPrincipalUpdate').text(formatAmount(principal));
 
-    if (principal > 0 && rate > 0 && period > 0) {
-        const monthlyRate = rate / (12 * 100);
-        const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, period)) / (Math.pow(1 + monthlyRate, period) - 1);
-        $('#emiAmountUpdate').text(formatAmount(emi.toFixed(2)));
+    if (principal > 0 && rate > 0) {
+        const monthlyRate = (principal * rate) / 100;
+
+        $('#emiAmountUpdate').text(formatAmount(monthlyRate.toFixed(2)));
     } else {
         $('#emiAmountUpdate').text(0);
     }

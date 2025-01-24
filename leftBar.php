@@ -37,9 +37,9 @@ $iActive = isset($_GET['iActive']) ? $_GET['iActive'] : '';
         </li>
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="EMIManagement.php">
+            <a class="nav-link collapsed" href="PendingPaymentManagement.php">
             <i class="bi bi-credit-card-2-front"></i>
-                <span>EMI Management</span>
+                <span>Pending Payment</span>
             </a>
         </li>
 

@@ -17,19 +17,20 @@ try {
         case 'addLoanDetails':
             $iBorrowerId = Input::request('borrowerId') ?: '';
             $iPrincipalAmount = Input::request('loanPrincipalAmount') ?: '';
-            $iInterestRate = Input::request('interestRate');
+            $iInterestRate = Input::request('interestRate') ?: '';
             $iLoanPeriod = Input::request('loanPeriod') ?: '';
             $dDisbursedDate = Input::request('disbursedDate') ?: '';
             $dClosureDate = Input::request('closureDate') ?: '';
 
             if ($iBorrowerId && $iPrincipalAmount && $iInterestRate && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
-                // Calculate EMI amount
-                $monthlyRate = $iInterestRate / (12 * 100); // Monthly interest rate
-                $EMI_amount = ($iPrincipalAmount * $monthlyRate * pow(1 + $monthlyRate, $iLoanPeriod)) / (pow(1 + $monthlyRate, $iLoanPeriod) - 1);
-                // print_r($EMI_amount);
-                // Calculate closure amount (Assuming closure includes all EMIs)
-                $closure_amount = $EMI_amount * $iLoanPeriod;
+                // Calculate Monthly Interest
+                $monthlyInterest = ($iPrincipalAmount * $iInterestRate) / 100;
 
+                // Calculate Total Closure Amount (Principal + Total Interest over the period)
+                $totalInterest = $monthlyInterest * $iLoanPeriod;
+                $closure_amount = $iPrincipalAmount + $totalInterest;
+
+                // Prepare Loan Data
                 $aData = [
                     'borrower_id' => $iBorrowerId,
                     'principal_amount' => $iPrincipalAmount,
@@ -37,19 +38,26 @@ try {
                     'loan_period' => $iLoanPeriod,
                     'disbursed_date' => $dDisbursedDate,
                     'top_up_payment' => 0,
-                    'EMI_amount' => $EMI_amount,
+                    'EMI_amount' => $monthlyInterest, // Storing monthly interest instead of EMI
                     'closure_amount' => $closure_amount,
                     'closure_date' => $dClosureDate,
                     'loan_status' => 'active', // Default status
+                    'ending_principal' => $iPrincipalAmount, // Initially, the remaining principal equals the loan amount
+                    'repaid_principal' => 0, // No repayments yet
+                    'part_payment_status' => 0, // No part payment yet
+                    'closer_payment_status' => 0, // Loan is active
                 ];
 
                 // Insert Loan Data
                 $oResultLastId = (new LoanManager())->addLoan($aData);
+
                 if ($oResultLastId) {
+                    // Generate EMI Schedule
                     $emiManager = new EMIScheduleManager();
                     $oEMIData = $emiManager->generateFirstEMI($oResultLastId, $iPrincipalAmount, $iInterestRate, $iLoanPeriod, $dDisbursedDate);
                     $scheduleId = $emiManager->addEMISchedule($oEMIData);
                 }
+
                 if ($oResultLastId) {
                     $response['status'] = 'success';
                     $response['message'] = 'Loan details added successfully.';
@@ -62,6 +70,7 @@ try {
                 $response['message'] = 'Missing values.';
             }
             break;
+
 
         case 'fetchLoanDetails':
             $iBorrowerId = Input::request('borrowerId') ?: '';
@@ -96,11 +105,11 @@ try {
             // Check for required input values
             if ($iBorrowerId && $iPrincipalAmount && $iInterestRate && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
                 // Calculate EMI amount
-                $monthlyRate = $iInterestRate / (12 * 100); // Monthly interest rate
-                $EMI_amount = ($iPrincipalAmount * $monthlyRate * pow(1 + $monthlyRate, $iLoanPeriod)) / (pow(1 + $monthlyRate, $iLoanPeriod) - 1);
+                $monthlyInterest = ($iPrincipalAmount * $iInterestRate) / 100;
 
-                // Calculate closure amount (Assuming closure includes all EMIs)
-                $closure_amount = $EMI_amount * $iLoanPeriod;
+                // Calculate Total Closure Amount (Principal + Total Interest over the period)
+                $totalInterest = $monthlyInterest * $iLoanPeriod;
+                $closure_amount = $iPrincipalAmount + $totalInterest;
 
                 $aData = [
                     'borrower_id' => $iBorrowerId,
@@ -110,7 +119,12 @@ try {
                     'disbursed_date' => $dDisbursedDate,
                     'closure_amount' => $closure_amount,
                     'closure_date' => $dClosureDate,
-                    'EMI_amount' => $EMI_amount,
+                    'EMI_amount' => $monthlyInterest,
+                    'ending_principal' => $iPrincipalAmount,
+                    'repaid_principal' => 0, // No repayments yet
+                    'part_payment_status' => 0, // No part payment yet
+                    'closer_payment_status' => 0, // Loan is active
+                    'loan_status' => 'active', 
                 ];
 
                 // Update Loan Data

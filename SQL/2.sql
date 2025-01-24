@@ -3,6 +3,7 @@
 
 CREATE TABLE app_borrower_master (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    unique_borrower_id VARCHAR(10) NOT NULL,
     name VARCHAR(100) NOT NULL,
     phone_no VARCHAR(255) NOT NULL UNIQUE,
     gender varchar(255),
@@ -30,22 +31,26 @@ CREATE TABLE app_borrower_document (
 
 
 
--- Table: LOAN DETAILS
+-- Modified Table: LOAN DETAILS
 CREATE TABLE app_loan_details (
     loan_id INT AUTO_INCREMENT PRIMARY KEY,
     borrower_id INT,
-    principal_amount DECIMAL(10, 2) NOT NULL,
-    interest_rate DECIMAL(5, 2) NOT NULL,
-    loan_period INT NOT NULL,
-    disbursed_date DATE NOT NULL,
-    top_up_payment DECIMAL(10, 2) DEFAULT 0,
-    EMI_amount DECIMAL(10, 2),
-    closure_amount DECIMAL(10, 2),
-    closure_date DATE,
-    loan_status VARCHAR(20) DEFAULT 'active',
-    added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status TINYINT DEFAULT 1,
-    deleted TINYINT DEFAULT 0,
+    principal_amount DECIMAL(10, 2) NOT NULL, -- Total loan amount
+    interest_rate DECIMAL(5, 2) NOT NULL, -- Interest rate for the loan
+    loan_period INT NOT NULL, -- Loan period in months
+    disbursed_date DATE NOT NULL, -- Loan disbursement date
+    top_up_payment DECIMAL(10, 2) DEFAULT 0, -- Additional payments (e.g., top-up)
+    EMI_amount DECIMAL(10, 2), -- Calculated EMI for the loan
+    closure_amount DECIMAL(10, 2), -- Amount required for loan closure
+    closure_date DATE, -- Date of loan closure
+    ending_principal DECIMAL(10, 2) DEFAULT 0, -- Remaining principal amount after payments
+    repaid_principal DECIMAL(10, 2) DEFAULT 0, -- Total principal amount repaid
+    part_payment_status TINYINT DEFAULT 0, -- 0 = No part payment, 1 = Part payment made
+    closer_payment_status TINYINT DEFAULT 0, -- 0 = Loan active, 1 = Loan closed
+    loan_status VARCHAR(20) DEFAULT 'active', -- Loan status: active/closed
+    added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Record creation time
+    status TINYINT DEFAULT 1, -- 1 = Active, 0 = Inactive
+    deleted TINYINT DEFAULT 0, -- 0 = Not deleted, 1 = Deleted
     FOREIGN KEY (borrower_id) REFERENCES app_borrower_master(id)
 );
 
@@ -64,6 +69,7 @@ CREATE TABLE app_borrower_loan_payments (
     payment_status VARCHAR(20) DEFAULT 'pending',
     mode_of_payment VARCHAR(50),
     interest_date DATE,
+    added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status TINYINT DEFAULT 1,
     deleted TINYINT DEFAULT 0,
     FOREIGN KEY (loan_id) REFERENCES app_loan_details(loan_id)
@@ -154,5 +160,5 @@ CREATE TABLE app_referral_document (
     added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status TINYINT DEFAULT 1,
     deleted TINYINT DEFAULT 0,
-    FOREIGN KEY (reference_Id) REFERENCES app_referral_user(reference_Id)
+    FOREIGN KEY (referral_id) REFERENCES app_referral_user(reference_Id)
 );

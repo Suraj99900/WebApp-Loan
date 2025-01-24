@@ -90,15 +90,12 @@ include_once "leftBar.php";
                                                     <tr>
                                                         <th>Sr.no</th>
                                                         <th>Borrower Name</th>
-                                                        <th>Principal Amount</th>
-                                                        <th>Total Payments</th>
-                                                        <th>Total Final Amount</th>
+                                                        <th>Interest Collected</th>
+                                                        <th>Penalties Collected</th>
+                                                        <th>Referral Collected</th>
                                                         <th>Net Revenue</th>
-                                                        <th>Total Penalties</th>
-                                                        <th>Total Referral Share</th>
-                                                        <th>Total Principal Paid</th>
+                                                        <th>Outstanding Principal</th>
                                                         <th>Status</th>
-                                                        <th>Report Date</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="revenueBodyId">

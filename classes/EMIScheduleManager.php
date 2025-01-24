@@ -62,22 +62,39 @@ final class EMIScheduleManager
         }
     }
 
+    public function generateNewEMIForSameLoan($loanId, $fNewLoanAmount, $fInterestRate, $iLoanTenure, $aLastEMI){
+        // Use the ending principal of the previous EMI as the beginning principal
+        $fBeginningPrincipal = $aLastEMI['ending_principal'];
+        $iNewEndingPrincipal = (float)$aLastEMI['ending_principal'] - (float)$fNewLoanAmount;
+        $iNewPrincipalRepaid = (float)$aLastEMI['principal_repaid'] + (float)$fNewLoanAmount;
+         // Calculate interest amount using the  formula
+        $iInterestAmount = ($iNewEndingPrincipal * $fInterestRate) / 100;
+
+        $aEmiData = [
+            'loan_id' => $loanId,
+            'month_no' => $aLastEMI['month_no'],
+            'beginning_principal' => round($fBeginningPrincipal, 2),
+            'interest_amount' => round($iInterestAmount, 2),
+            'emi_amount' => round($iInterestAmount, 2),
+            'principal_repaid' => $iNewPrincipalRepaid,
+            'ending_principal' => $iNewEndingPrincipal,
+            'payment_due_date' => $aLastEMI['payment_due_date'],
+            'penalty_amount' => $aLastEMI['penalty_amount'],
+            'payment_status' => 'pending'
+        ];
+
+        return $aEmiData;
+    }
+
     public function generateFirstEMI($loanId, $loanAmount, $interestRate, $loanTenure, $loanStartDate)
     {
         // Calculate EMI
-        $emiAmount = $this->calculateEMI($loanAmount, $interestRate, $loanTenure);
+        $emiSchedule = [];
+        $remainingPrincipal = $loanAmount;
 
-        $monthlyInterestRate = ($interestRate / 12) / 100;
-
-        $interestAmount = $loanAmount * $monthlyInterestRate;
-
-        $principalRepaid = $emiAmount - $interestAmount;
-
-        $endingPrincipal = $loanAmount - $principalRepaid;
-
-        if ($endingPrincipal < 1) {
-            $endingPrincipal = 0;
-        }
+        // Convert loan start date to DateTime object
+        $loanStartDateTime = new DateTime($loanStartDate);
+        $iMonthlyInterest = ($remainingPrincipal * $interestRate) / 100;
 
         $loanStartDateTime = new DateTime($loanStartDate);
         $loanStartDateTime->modify('first day of next month'); // Move to the first day of the next month
@@ -94,10 +111,10 @@ final class EMIScheduleManager
             'loan_id' => $loanId,
             'month_no' => 1,
             'beginning_principal' => $loanAmount,
-            'interest_amount' => $interestAmount,
-            'emi_amount' => $emiAmount,
-            'principal_repaid' => $principalRepaid,
-            'ending_principal' => $endingPrincipal,
+            'interest_amount' => $iMonthlyInterest,
+            'emi_amount' => $iMonthlyInterest,
+            'principal_repaid' => 0,
+            'ending_principal' => $remainingPrincipal,
             'payment_due_date' => $paymentDueDate,
             'penalty_amount' => 0,
             'payment_status' => 'pending',
@@ -111,51 +128,46 @@ final class EMIScheduleManager
 
     public function generateNextPaymentEMI($loanId, $loanAmount, $interestRate, $loanTenure, $lastEMI)
     {
-        
+        // Use the ending principal of the previous EMI as the beginning principal
         $beginningPrincipal = $lastEMI['ending_principal'];
 
-        // Calculate EMI using the loan amount, interest rate, and tenure
-        $emiAmount = $this->calculateEMI($loanAmount, $interestRate, $loanTenure);
+        // Calculate interest amount using the new formula
+        $interestAmount = ($beginningPrincipal * $interestRate) / 100;
 
-        // Monthly interest rate
-        $monthlyInterestRate = ($interestRate / 12) / 100;
+        // EMI amount is equal to the interest amount (based on your first EMI logic)
+        $emiAmount = $interestAmount;
 
-        $interestAmount = $beginningPrincipal * $monthlyInterestRate;
 
-        $principalRepaid = $emiAmount - $interestAmount;
 
-        $endingPrincipal = $beginningPrincipal - $principalRepaid;
-         // Check if ending principal is less than 1 and set it to 0
-        if ($endingPrincipal < 1) {
-            $endingPrincipal = 0;
-        }
-
+        // Calculate the next due date (one month from the last EMI's due date)
         $nextDueDate = date('Y-m-d', strtotime("+1 month", strtotime($lastEMI['payment_due_date'])));
 
+        // Default penalty amount if the payment is overdue
         $penaltyAmount = 0;
-        if ($nextDueDate < date('Y-m-d')) {
-            $penaltyAmount = DEFAULT_PENALTY; // Apply default penalty if the due date is past
+        if (strtotime($nextDueDate) < strtotime(date('Y-m-d'))) {
+            $penaltyAmount = ($interestAmount * DEFAULT_PENALTY) / 100; // Apply default penalty if the due date is in the past
         }
 
+        // Check if referral percentage exists and calculate referral share
         $referralShare = isset($lastEMI['ref_percentage']) ? ($emiAmount * $lastEMI['ref_percentage'] / 100) : 0;
 
+        // Prepare EMI data for the next payment
         $emiData = [
             'loan_id' => $loanId,
             'month_no' => $lastEMI['month_no'] + 1,
-            'beginning_principal' => $beginningPrincipal,
-            'interest_amount' => $interestAmount,
-            'emi_amount' => $emiAmount,
-            'principal_repaid' => $principalRepaid,
-            'ending_principal' => $endingPrincipal,
+            'beginning_principal' => round($beginningPrincipal, 2),
+            'interest_amount' => round($interestAmount, 2),
+            'emi_amount' => round($emiAmount, 2),
+            'principal_repaid' => 0,
+            'ending_principal' => $beginningPrincipal,
             'payment_due_date' => $nextDueDate,
             'penalty_amount' => $penaltyAmount,
             'payment_status' => 'pending',
-            'referral_share' => $referralShare,
+            'referral_share' => round($referralShare, 2),
         ];
 
         return $emiData;
     }
-
 
 
     public function calculateEMI($loanAmount, $interestRate, $loanTenure)
@@ -226,6 +238,10 @@ final class EMIScheduleManager
                 ->set('status', ':status')
                 ->set('deleted', ':deleted')
                 ->where('loan_id = :loan_id')
+                ->andWhere('status = :checkStatus')
+                ->andWhere('deleted = :checkDeleted')
+                ->setParameter('checkStatus',1)
+                ->setParameter('checkDeleted',0)
                 ->setParameter('month_no', $emiData['month_no'])
                 ->setParameter('beginning_principal', $emiData['beginning_principal'])
                 ->setParameter('interest_amount', $emiData['interest_amount'])
@@ -251,7 +267,8 @@ final class EMIScheduleManager
         }
     }
 
-    public function updateEMIScheduleStatus($iScheduleId){
+    public function updateEMIScheduleStatus($iScheduleId)
+    {
         $sTableName = "app_loan_emi_schedule";
 
         try {
@@ -274,7 +291,7 @@ final class EMIScheduleManager
         } catch (\Exception $e) {
             die("Error: " . $e->getMessage());
         }
-    } 
+    }
 
     // Delete EMI schedule entry by schedule ID
     public function deleteEMISchedule($scheduleId)
@@ -315,7 +332,7 @@ final class EMIScheduleManager
                 ->andWhere('deleted = 0')
                 ->andWhere('payment_status = :sPayment_status')
                 ->andWhere('status = 1')
-                ->setParameter('sPayment_status','pending')
+                ->setParameter('sPayment_status', 'pending')
                 ->setParameter('loan_id', $iLoanId);
 
             // Execute the query
@@ -332,22 +349,31 @@ final class EMIScheduleManager
         }
     }
 
-    public function getAllEMISchedulesByBorrowerId($iBorrowerId)
+    public function getAllEMISchedulesByBorrowerId($iBorrowerId = '')
     {
         try {
             // Build the query with JOINs
-            $this->oQueryBuilder->select('A.*, B.*, C.*')
+            $this->oQueryBuilder->select('B.*, C.*,A.*')
                 ->from('app_loan_emi_schedule', 'A')
                 ->leftJoin('A', 'app_loan_details', 'B', 'B.loan_id = A.loan_id AND A.deleted = 0')
                 ->leftJoin('B', 'app_borrower_master', 'C', 'C.id = B.borrower_id AND C.deleted = 0')
                 ->where('A.deleted = 0')
-                ->andWhere('C.id = :borrower_id')
-                ->setParameter('borrower_id', $iBorrowerId);
-    
+                ->orderBy('A.payment_status','DESC');
+                
+                
+                if($iBorrowerId == ''){
+                    $this->oQueryBuilder
+                        ->andWhere('A.payment_status = :sPaymentStatus')
+                        ->setParameter('sPaymentStatus', "pending");
+                }else{
+                    $this->oQueryBuilder
+                        ->andWhere('C.id = :borrower_id')
+                        ->setParameter('borrower_id', $iBorrowerId);
+                }
             // Execute the query
             $oResult = $this->oQueryBuilder->executeQuery();
             $aRows = $oResult->fetchAllAssociative();
-    
+
             if ($aRows) {
                 return $aRows;  // Return all EMI schedules
             } else {
@@ -357,7 +383,36 @@ final class EMIScheduleManager
             die("Error: " . $e->getMessage());
         }
     }
-    
+
+    public function closedActiveEMIScheduleByLoanId($iLoanId)
+    {
+        $sTableName = "app_loan_emi_schedule";
+        try {
+
+            // Build the query
+            $this->oQueryBuilder->update($sTableName)
+                ->set("deleted", ":deleted")
+                ->set("status", ":updateStatus")
+                ->where('loan_id = :loan_id')
+                ->andWhere('status = :status')
+                ->setParameter('status', 1)
+                ->setParameter('deleted', 1)
+                ->setParameter('updateStatus', 0)
+                ->setParameter('loan_id', $iLoanId);
+
+            // Execute the query
+            $oResult = $this->oQueryBuilder->executeQuery();
+
+            if ($oResult) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (\Exception $e) {
+            die("Error :" . $e->getMessage());
+        }
+    }
+
 
 
 

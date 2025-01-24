@@ -3,6 +3,7 @@ $(document).ready(() => {
     eventClick();
 
     $('#filterReset').on('click', function () {
+        $('#filterReferralName').val(" ");
         fetchAllReferralDetails();
     });
 
@@ -186,7 +187,7 @@ function fetchAllReferralDetails(sName = '') {
                         <td>${referral.ref_name}</td>
                         <td>${referral.ref_phone_number}</td>
                         <td>${referral.ref_percentage}%</td>
-                        <td>${referral.added_on}</td>
+                        <td>${moment(referral.added_on).format('MMM DD YYYY')}</td>
                         <td style="display: flex;">
                             <button class="btn btn-primary btn-sm icon-box mx-2" id="referralUpdateId" data-id="${referral.reference_Id}" title="Update Referral Details">
                                 <i class="fa-solid fa-pen-to-square"></i>

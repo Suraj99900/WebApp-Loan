@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (borrowerId) {            
             initializeEMITable(borrowerId);
         } else {
+            initializeEMITable();
             emiBodyId.innerHTML = `<tr><td colspan="6" class="text-center">Please select a borrower.</td></tr>`;
         }
     });
@@ -37,12 +38,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize
     fetchBorrowers();
+    initializeEMITable();
 });
 
 
 
 
-function initializeEMITable(borrowerId) {
+function initializeEMITable(borrowerId = '') {
 
     
     // Destroy any existing instance of DataTable
@@ -53,7 +55,7 @@ function initializeEMITable(borrowerId) {
     // Initialize DataTable
     $('#emiDetailsTable').DataTable({
         processing: true,
-        serverSide: true,
+        serverSide: false,
         ajax: {
             url: 'ajaxFile/ajaxEMI.php',
             type: 'POST',
@@ -64,11 +66,31 @@ function initializeEMITable(borrowerId) {
         },
         columns: [
             { data: 'id', title: 'ID', render: (data, type, row, meta) => meta.row + 1 }, // Serial number
-            { data: 'EMI_amount', title: 'EMI Amount' },
-            { data: 'principal_repaid', title: 'Principal Repaid' },
-            { data: 'interest_amount', title: 'Interest Amount' },
-            { data: 'ending_principal', title: 'Ending Principal' },
-            { data: 'payment_due_date', title: 'Payment Due Date' },
+            {
+                data: null, // Combine "name" and "unique_borrower_id"
+                title: 'Borrower Name',
+                render: (data) => `${data.name} <b>(${data.unique_borrower_id}) </b>` // Custom render
+            },
+            {
+                data: 'emi_amount',
+                title: 'Pending Amount (Interest/EMI)',
+                render: (data) => data ? `${formatAmount(parseFloat(data))}` : 'N/A' // Format to 2 decimals
+            },
+            {
+                data: 'principal_repaid',
+                title: 'Principal Repaid',
+                render: (data) => data ? `${formatAmount(parseFloat(data))}` : 'N/A' // Format to 2 decimals
+            },
+            {
+                data: 'ending_principal',
+                title: 'Outstanding Principal',
+                render: (data) => data ? `${formatAmount(parseFloat(data))}` : 'N/A' // Format to 2 decimals
+            },
+            {
+                data: 'payment_due_date',
+                title: 'Payment Due Date',
+                render: (data) => data ? new Date(data).toLocaleDateString('en-IN') : 'N/A' // Format date
+            },
             {
                 data: 'payment_status',
                 title: 'Payment Status',
@@ -84,7 +106,6 @@ function initializeEMITable(borrowerId) {
         paging: true, // Enable pagination
         searching: true, // Enable searching
         lengthChange: true, // Enable change in number of rows per page
-        order: [[5, 'asc']] // Default sort by Payment Due Date
     });
 }
 

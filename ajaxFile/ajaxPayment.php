@@ -17,13 +17,14 @@ try {
     switch ($sFlag) {
         case 'fetchPaymentDetails':
             $iBorrowerId = Input::request('borrower_id') ? Input::request('borrower_id') : '';
+            $iLoanId = Input::request('loanId') ? Input::request('loanId') : '';
             if (!$iBorrowerId) {
                 $response['message'] = 'Borrower ID is required.';
                 break;
             }
 
             $oLoanManager = new LoanManager();
-            $oLoanData = $oLoanManager->getLoanDetailsByBorrowerID($iBorrowerId);
+            $oLoanData = $oLoanManager->getLoanDetailsByBorrowerID($iBorrowerId,$iLoanId);
 
             if (!empty($oLoanData)) {
                 $aPendingPayments = [];
@@ -43,7 +44,7 @@ try {
                         // Compare the current date with the due date + penalty date logic
                         if (date('d') > $defaultDay) {
                             // Apply the penalty
-                            $aLoan['penalty_amount'] = $iDefaultPenalty;
+                            $aLoan['penalty_amount'] = $aLoan['emi_amount']*$iDefaultPenalty/100;
                         }
                     } else {
                         $aLoan['penalty_amount'] = 0; // No penalty if the payment due date is not passed
@@ -69,7 +70,7 @@ try {
 
         case 'addPayment':
             $iBorrowerId = Input::request('borrower_id') ? Input::request('borrower_id') : '';
-            $iLoanId = Input::request('loan_id') ? Input::request('loan_id') : '';
+            $iLoanId = Input::request(sName: 'loan_id') ? Input::request('loan_id') : '';
             $fPaymentAmount = Input::request('payment_amount') ? Input::request('payment_amount') : 0;
             $fPenaltyAmount = Input::request('penalty_amount') ? Input::request('penalty_amount') : 0;
             $fInterest_amount = Input::request('interest_amount') ? Input::request('interest_amount') : 0;
@@ -78,6 +79,7 @@ try {
             $sPaymentMode = Input::request('payment_mode') ? Input::request('payment_mode') : "";
             $dReceivedDate = Input::request('received_date') ? Input::request('received_date') : "";
             $dPaymentDueDate = Input::request('payment_due_date') ? Input::request('payment_due_date') : "";
+            $bCloserPayment = Input::request("bCloserPayment") ? Input::request("bCloserPayment") : false;
 
             if (!$iBorrowerId || !$iLoanId || !$fPaymentAmount) {
                 $response['message'] = 'Missing required fields.';
@@ -109,7 +111,7 @@ try {
                 $oEMIScheduleManager->updateEMIScheduleStatus($oLastEMIScheduleResult[0]['schedule_id']);
 
 
-                if ((int) $oLastEMIScheduleResult[0]['ending_principal'] == 0) {
+                if ((int) $oLastEMIScheduleResult[0]['ending_principal'] == $fPaymentAmount && $bCloserPayment) {
                     $oLoanManager = new LoanManager();
                     $oLoanManager->updateLoanStatus($iLoanId); // Mark loan as Done
                 } else {
@@ -124,20 +126,20 @@ try {
                     $penaltyIncome = (float)$existingReport[0]['penalty_income'] + (float)$fPenaltyAmount;
                     $referralExpense = (float)$existingReport[0]['referral_expense'] + (float)$fReferralShare;
                     $outstandingPrincipal = $existingReport[0]['outstanding_principal'] - $fPrincipal_repaid;
-                }else{
+                } else {
                     $penaltyIncome = $fPenaltyAmount;
                     $referralExpense = $fReferralShare;
                     $outstandingPrincipal = $oLoanDetails['principal_amount'] - $fPrincipal_repaid;
                 }
 
-                if($outstandingPrincipal < 1){
+                if ($outstandingPrincipal < 1) {
                     $outstandingPrincipal = 0;
                 }
 
                 $totalInterest = $oLoanPaymentManager->getTotalInterestPaidByLoanId($iLoanId);
-                
-                
-                
+
+
+
                 $netRevenue = $totalInterest + $penaltyIncome - $referralExpense;
                 $emiCount = $oLastEMIScheduleResult[0]['month_no'];
 
@@ -153,7 +155,7 @@ try {
                     "outstanding_principal" => $outstandingPrincipal,
                     "calculated_on" => date('Y-m-d'),
                 ];
-                
+
 
                 if (count($existingReport) > 0) {
                     $oRevenueReport->updateRevenueReport($existingReport[0]['report_id'], $reportData);
@@ -174,19 +176,157 @@ try {
         case 'fetchPaymentData':
             $iLoanId = Input::request('loan_id') ? Input::request('loan_id') : '';
             $name = Input::request('name') ?? '';
-            $paymentReceivedDate = Input::request('paymentReceivedDate') ?? '';
+            $dFromDate = Input::request('sFromDate')??'';
+            $dToDate = Input::request('sToDate')??'';
             $paymentMode = Input::request('paymentMode') ?? '';
 
             // Fetch Payment Data
             $oLoanPaymentManager = new LoanPaymentManager();
-            $paymentData = $oLoanPaymentManager->getAllLoanPaymentsGlobal($name, $paymentReceivedDate, $paymentMode);
+            $paymentData = $oLoanPaymentManager->getAllLoanPaymentsGlobal($name, $dFromDate,$dToDate, $paymentMode);
 
             // Prepare response data
             $response['status'] = 'success';
+            $response['draw'] = (int)Input::request('draw');
             $response['recordsTotal'] = count($paymentData); // Total number of records
             $response['recordsFiltered'] = count($paymentData); // Number of records after filtering (if applicable)
             $response['data'] = $paymentData;
             break;
+
+        case 'partOrCloserPayment':
+            $iBorrowerId = Input::request('borrower_id') ?: '';
+            $iLoanId = Input::request('loan_id') ?: '';
+            $fPaymentAmount = Input::request('payment_amount') ?: 0;
+            $bCloserPayment = Input::request('payment_type') == 1 ? Input::request('payment_type') : 2;
+            $sPaymentMode = Input::request('payment_mode') ?: '';
+            $dReceivedDate = Input::request('received_date') ?: '';
+
+            if (!$iBorrowerId || !$iLoanId || !$fPaymentAmount || !$dReceivedDate) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Missing required fields.',
+                ];
+                break;
+            }
+
+            // Fetch Loan Details
+            $oLoanManager = new LoanManager();
+            $oLoanDetails = $oLoanManager->getLoanById($iLoanId);
+
+            if (empty($oLoanDetails)) {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Loan not found.',
+                ];
+                break;
+            }
+
+            // Calculate Outstanding Principal
+            $outstandingPrincipal = $oLoanDetails['principal_amount'] - $oLoanDetails['repaid_principal'];
+
+            $aPaymentData = [
+                "loan_id" => $iLoanId,
+                "payment_amount" => $fPaymentAmount,
+                "penalty_amount" => 0,
+                "referral_share_amount" => 0,
+                "final_amount" => $fPaymentAmount,
+                "received_date" => $dReceivedDate,
+                "interest_paid" => 0,
+                "principal_paid" => $fPaymentAmount,
+                "payment_status" => 'Completed',
+                "mode_of_payment" => $sPaymentMode,
+                "interest_date" => $oLoanDetails['closure_date'],
+            ];
+
+            if ($bCloserPayment == 1) {
+                // Closer Payment
+                if ($fPaymentAmount < $outstandingPrincipal) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Closer payment amount is insufficient to clear the outstanding principal.',
+                    ];
+                } elseif ($fPaymentAmount > $outstandingPrincipal) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Closer payment amount exceeds the outstanding principal.',
+                    ];
+                } else {
+                    // Add payment and mark loan as closed
+                    $oLoanPaymentManager = new LoanPaymentManager();
+                    $iLastInsertId = $oLoanPaymentManager->addLoanPayment($aPaymentData);
+
+                    $oLoanManager->makePayment($iLoanId, $fPaymentAmount); // Additional logic to close loan
+                    $oLoanManager->updateLoanStatus($iLoanId); // Ensure loan status is marked as 'Closed'
+                    $bClosedEMITrack = (new EMIScheduleManager())->closedActiveEMIScheduleByLoanId($iLoanId);
+
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Closer payment processed successfully. Loan has been marked as closed.',
+                        'outstanding_principal' => 0,
+                    ];
+                }
+            } else if ($bCloserPayment == 2) {
+                // Part Payment
+                $outstandingPrincipal = $oLoanDetails['ending_principal'];
+                $repaidPrincipal = $oLoanDetails['repaid_principal'];
+
+                if ($fPaymentAmount > $outstandingPrincipal) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Part payment amount exceeds the outstanding principal.',
+                        'outstanding_principal' => $outstandingPrincipal,
+                    ];
+                    break;
+                }
+
+                $oLoanPaymentManager = new LoanPaymentManager();
+                $iLastInsertId = $oLoanPaymentManager->addLoanPayment($aPaymentData);
+
+                $updatedPrincipalRepaid = $repaidPrincipal + $fPaymentAmount;
+                $updatedOutstandingPrincipal = (float)$outstandingPrincipal - (float)$fPaymentAmount;
+                if($updatedOutstandingPrincipal < 1){
+                    $updatedOutstandingPrincipal = 0;
+                }
+
+                $updateResult = false;
+                if($updatedOutstandingPrincipal == 0){
+                    $oLoanManager->makePayment($iLoanId, $fPaymentAmount); // Additional logic to close loan
+                    $oLoanManager->updateLoanStatus($iLoanId); // Ensure loan status is marked as 'Closed'
+                    $bClosedEMITrack = (new EMIScheduleManager())->closedActiveEMIScheduleByLoanId($iLoanId);
+                    $updateResult = true;
+                }else{
+                    $updateResult = $oLoanManager->updateLoanPrincipalRepaidAndOutstanding(
+                        $iLoanId,
+                        $updatedPrincipalRepaid,
+                        $updatedOutstandingPrincipal
+                    );
+                    $oEMIScheduleManager = new EMIScheduleManager();
+                    $oLastEMIScheduleResult = $oEMIScheduleManager->getAllEMISchedulesByLoanId($iLoanId)[0];
+
+                    $aNewEMIData = (new EMIScheduleManager())->generateNewEMIForSameLoan($iLoanId,$fPaymentAmount,$oLoanDetails['interest_rate'],$oLoanDetails['loan_period'],$oLastEMIScheduleResult);
+
+                    $emiUpdated = $oEMIScheduleManager->updateEMISchedule($iLoanId, $aNewEMIData);
+                }
+                if ($updateResult) {
+                    $response = [
+                        'status' => 'success',
+                        'message' => 'Part payment processed successfully.',
+                        'outstanding_principal' => $updatedOutstandingPrincipal,
+                        'repaid_principal' => $updatedPrincipalRepaid,
+                    ];
+                } else {
+                    $response = [
+                        'status' => 'error',
+                        'message' => 'Failed to update loan details.',
+                    ];
+                }
+            } else {
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Invalid payment type.',
+                ];
+            }
+            break;
+
 
 
         default:

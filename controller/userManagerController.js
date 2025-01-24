@@ -4,7 +4,7 @@ $(document).ready(() => {
     // Initialize DataTable
     const userTable = $('#userDetailsTable').DataTable({
         processing: true,
-        serverSide: true,
+        serverSide: false,
         ajax: {
             url: 'ajaxFile/ajaxUserManage.php?sFlag=fetch',
             data: function (d) {

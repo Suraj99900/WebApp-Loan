@@ -49,11 +49,13 @@ include_once "leftBar.php";
                                             <input type="text" id="filterBorrowerName" class="form-control form-control-sm" placeholder="Search by Borrower Name">
                                         </div>
                                     </div>
-                                    <div class="col align-items-center me-3">
-                                        <div class=" align-items-center me-3">
-                                            <label for="filterPaymentDate" class="me-2 mb-0">Payment Date</label>
-                                            <input type="date" id="filterPaymentDate" class="form-control form-control-sm">
-                                        </div>
+                                    <div class="col">
+                                        <label for="filterLoanDate">From Date</label>
+                                        <input type="date" id="filterFromDate" class="form-control">
+                                    </div>
+                                    <div class="col">
+                                        <label for="filterLoanDate">To Date</label>
+                                        <input type="date" id="filterToDate" class="form-control">
                                     </div>
                                     <div class="col align-items-center me-3">
                                         <div class=" align-items-center me-3">
@@ -76,6 +78,8 @@ include_once "leftBar.php";
                                     <!-- Add and Export Buttons Section -->
                                     <div class="col-auto ms-auto  justify-content-end">
                                         <button id="addPaymentID" data-bs-toggle="offcanvas" data-bs-target="#addPaymentOffcanvas" aria-controls="AddPaymentOffCanvasId" class="btn btn-primary btn-sm me-2 mt-4">Add Payment</button>
+                                        <button id="closurePartPaymentButton" data-bs-toggle="offcanvas" data-bs-target="#closurePartPaymentOffcanvas" aria-controls="closurePartPaymentOffcanvas" class="btn btn-secondary btn-sm me-2 mt-4">Closure/Part Payment</button>
+
                                         <button id="exportPaymentExcel" class="btn btn-success btn-sm me-2 mt-4" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
                                         <button id="exportPaymentPDF" class="btn btn-success btn-sm mt-4" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
                                     </div>
@@ -141,12 +145,20 @@ include_once "leftBar.php";
                     </select>
                 </div>
 
+                <div class="col-md-6" id="loanSelectionField" style="display:none;">
+                    <label for="loanSelection" class="form-label">Select Loan</label>
+                    <select class="form-select" id="loanSelection" name="loan_id">
+                        <option value="">Select Loan</option>
+                        <!-- Loan options will be populated dynamically -->
+                    </select>
+                </div>
+
                 <!-- Loan ID (Hidden Field) -->
                 <!-- <div class="col-md-6"> -->
-                    <!-- <label for="loanId" class="form-label">Loan ID</label> -->
-                    <input type="hidden" class="form-control" id="loanId" name="loan_id" readonly required>
-                    <input type="hidden" id="interestAmountId" name="interest_amount">
-                    <input type="hidden" id="principalRepaidId" name="principal_repaid">
+                <!-- <label for="loanId" class="form-label">Loan ID</label> -->
+                <input type="hidden" class="form-control" id="loanId" name="loan_id"  required>
+                <input type="hidden" id="interestAmountId" name="interest_amount">
+                <input type="hidden" id="principalRepaidId" name="principal_repaid">
                 <!-- </div> -->
 
                 <!-- Payment Amount -->
@@ -154,6 +166,8 @@ include_once "leftBar.php";
                     <label for="paymentAmount" class="form-label">Payment Amount</label>
                     <input type="number" class="form-control" id="paymentAmount" name="payment_amount" placeholder="Enter Payment Amount" step="0.01" required>
                 </div>
+
+
 
                 <!-- Penalty Amount -->
                 <div class="col-md-6">
@@ -187,7 +201,78 @@ include_once "leftBar.php";
                 <!-- Due Date -->
                 <div class="col-md-6">
                     <label for="dueDate" class="form-label">Due Date</label>
-                    <input type="date" class="form-control" id="paymentDueDateId" name="payment_due_date" required>
+                    <input type="date" class="form-control" id="paymentDueDateId" name="payment_due_date" readonly required>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary w-100">Save Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Offcanvas for Closure and Part Payment -->
+<div class="offcanvas offcanvas-end dynamic-width" tabindex="-1" id="closurePartPaymentOffcanvas" aria-labelledby="closurePartPaymentOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 id="closurePartPaymentOffcanvasLabel">Closure/Part Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form id="closurePartPaymentForm" method="POST" enctype="multipart/form-data">
+            <!-- Row Layout Starts -->
+            <div class="row g-3">
+                <!-- Borrower Name -->
+                <div class="col-md-6">
+                    <label for="borrowerNameForClosure" class="form-label">Borrower Name</label>
+                    <select class="form-select" id="borrowerNameForClosure" name="borrower_id" required>
+                        <option value="">Select Borrower</option>
+                        <!-- Borrower options populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="col-md-6" id="loanSelectionForClosureFiled" style="display:none;">
+                    <label for="loanSelection" class="form-label">Select Loan</label>
+                    <select class="form-select" id="loanSelectionForClosure" name="loan_id">
+                        <option value="">Select Loan</option>
+                        <!-- Loan options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <!-- Loan ID -->
+                <input type="hidden" class="form-control" id="loanIdForClosure" name="loan_id" readonly required>
+
+                <!-- Payment Type -->
+                <div class="col-md-6">
+                    <label for="paymentType" class="form-label">Payment Type</label>
+                    <select class="form-select" id="paymentType" name="payment_type" required>
+                        <option value="1">Closure</option>
+                        <option value="2">Part Payment</option>
+                    </select>
+                </div>
+
+                <!-- Payment Amount -->
+                <div class="col-md-6">
+                    <label for="closurePartPaymentAmount" class="form-label">Payment Amount</label>
+                    <input type="number" class="form-control" id="closurePartPaymentAmount" name="payment_amount" placeholder="Enter Payment Amount" step="0.01" required>
+                </div>
+
+                <!-- Payment Mode -->
+                <div class="col-md-6">
+                    <label for="paymentModeForClosure" class="form-label">Mode of Payment</label>
+                    <select class="form-select" id="paymentModeForClosure" name="payment_mode" required>
+                        <option value="UPI">UPI</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+
+                <!-- Received Date -->
+                <div class="col-md-6">
+                    <label for="receivedDateForClosure" class="form-label">Received Date</label>
+                    <input type="date" class="form-control" id="receivedDateForClosure" name="received_date" required>
                 </div>
             </div>
 
@@ -200,8 +285,36 @@ include_once "leftBar.php";
 </div>
 
 
+
+
+
 <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
 <?php include_once "CDN_Footer.php"; ?>
+
+<script>
+    $(document).ready(function() {
+
+
+        // Export to Excel
+        $('#exportPaymentExcel').on('click', function() {
+            var name = $('#filterBorrowerName').val();
+            const sFromDateFilter = $('#filterFromDate').val();
+            const sToDateFilter = $('#filterToDate').val();
+            var paymentMode = $('#filterPaymentMode').val();
+            window.location.href = 'ExportPDFExcel/LoanPaymentReportExport.php?export=excel&name=' + name + '&paymentMode=' + paymentMode+'&sFromDate='+sFromDateFilter+"&sToDateFilter="+sToDateFilter;
+        });
+
+        // Export to PDF
+        $('#exportPaymentPDF').on('click', function() {
+            var name = $('#filterBorrowerName').val();
+            const sFromDateFilter = $('#filterFromDate').val();
+            const sToDateFilter = $('#filterToDate').val();
+            var paymentMode = $('#filterPaymentMode').val();
+            window.location.href = 'ExportPDFExcel/LoanPaymentReportExport.php?export=pdf&name=' + name + '&paymentMode=' + paymentMode+'&sFromDate='+sFromDateFilter+"&sToDateFilter="+sToDateFilter;
+
+        });
+    });
+</script>
 
 <script src="controller/loanPaymentController.js"></script>

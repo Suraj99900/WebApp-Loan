@@ -12,6 +12,7 @@
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
 <script src="res/js/select2.min.js"></script>
+<script src="res/js/moment.min.js"></script>
 </body>
 
 </html>

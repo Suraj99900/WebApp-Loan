@@ -5,12 +5,20 @@ require_once '../vendor/autoload.php';
 include_once "../classes/class.Input.php";
 include "../classes/BorrowerManager.php";
 include "../classes/DocumentManager.php";
+include_once "../classes/LoanManager.php";
 
 // Assuming a POST request with borrower ID
 if (isset($_REQUEST['borrower_id'])) {
     $borrowerId = $_REQUEST['borrower_id'];
+    $iLoanId = $_REQUEST['loan_id'];
 
     $aBorrower = (new BorrowerManager())->getBorrowerById($borrowerId);
+    if($iLoanId != ''){
+        $aLoanData = (new LoanManager())->getAllLoans($borrowerId,$iLoanId);
+        $aBorrower['principal_amount'] = $aLoanData[0]['principal_amount'];
+        $aBorrower['loan_period'] = $aLoanData[0]['loan_period'];
+        $aBorrower['disbursed_date'] = $aLoanData[0]['disbursed_date'];
+    }
 
     if (!$aBorrower) {
         die("Borrower not found.");
@@ -71,7 +79,7 @@ if (isset($_REQUEST['borrower_id'])) {
     $footer = '
         <br>
         <h4>Agreement Details</h4>
-        <p>Date: <b>' . date('d-m-Y') . '</b></p>
+        <p>Date: <b>' . $aBorrower['disbursed_date'] . '</b></p>
         <p>Signature: <b>__________________________</b></p>
         Mr/Ms.'.$aBorrower['name'].'
 

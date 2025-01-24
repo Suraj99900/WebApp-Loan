@@ -17,10 +17,8 @@ try {
             $iBorrowerId = Input::request('borrowerId'); // Get the loan ID from the request, if provided
             $emiManager = new EMIScheduleManager();
 
-            if ($iBorrowerId) {
-                // Fetch EMI schedules for a specific loan ID
-                $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId);
-            }
+            // Fetch EMI schedules for a specific loan ID
+            $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId);
 
             if (!empty($oEMISchedules)) {
                 $response['status'] = 'success';

@@ -93,11 +93,15 @@ include_once "leftBar.php";
                                         <label for="filterLoanAmount">Loan Amount</label>
                                         <input type="number" id="filterLoanAmount" class="form-control" placeholder="Search by amount">
                                     </div>
-                                    <div class="col-sm-3">
-                                        <label for="filterLoanDate">Loan Date</label>
-                                        <input type="date" id="filterLoanDate" class="form-control">
+                                    <div class="col-sm-2">
+                                        <label for="filterLoanDate">From Date</label>
+                                        <input type="date" id="filterFromDate" class="form-control">
                                     </div>
-                                    <div class="col-sm-3">
+                                    <div class="col-sm-2">
+                                        <label for="filterLoanDate">To Date</label>
+                                        <input type="date" id="filterToDate" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
                                         <button id="searchId" class="btn btn-primary btn-sm mt-4"><i class="fa-solid fa-magnifying-glass"></i></button>
                                         <button id="filterRefresh" class="btn btn-primary btn-sm mt-4"><i class="fa-solid fa-arrows-rotate"></i></button>
                                     </div>
@@ -296,7 +300,7 @@ include_once "leftBar.php";
 
             <!-- EMI Calculation Section -->
             <div class="my-4 p-4 text-center shadow-sm rounded bg-light">
-                <h5 class="mb-3">Updated EMI Calculation</h5>
+                <h5 class="mb-3">Updated Interest Calculation</h5>
                 <div class="row g-2">
                     <div class="col-md-4">
                         <p><strong>Principal Amount:</strong> <span id="emiPrincipalUpdate">0</span></p>
@@ -308,7 +312,7 @@ include_once "leftBar.php";
                         <p><strong>Loan Period:</strong> <span id="emiPeriodUpdate">0</span> Months</p>
                     </div>
                 </div>
-                <h4 class="mt-3">Updated EMI: <span id="emiAmountUpdate">0</span></h4>
+                <h4 class="mt-3">Updated Interest: <span id="emiAmountUpdate">0</span></h4>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Update Loan</button>
@@ -365,7 +369,7 @@ include_once "leftBar.php";
 
             <!-- EMI Calculation Section -->
             <div class="my-4 p-4 text-center shadow-sm rounded bg-light">
-                <h5 class="mb-3">EMI Calculation</h5>
+                <h5 class="mb-3">Interest Calculation</h5>
                 <div class="row g-2">
                     <div class="col-md-4">
                         <p><strong>Principal Amount:</strong> <span id="emiPrincipal">0</span></p>
@@ -377,10 +381,79 @@ include_once "leftBar.php";
                         <p><strong>Loan Period:</strong> <span id="emiPeriod">0</span> Months</p>
                     </div>
                 </div>
-                <h4 class="mt-3">Estimated EMI: <span id="monthlyInterestAmount">0</span></h4>
+                <h4 class="mt-3">Estimated Interest: <span id="monthlyInterestAmount">0</span></h4>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Add Loan</button>
+        </form>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end dynamic-width" tabindex="-1" id="topUpLoanOffcanvas" aria-labelledby="topUpLoanOffcanvasLabel">
+    <div class="offcanvas-header">
+        <h5 id="topUpLoanOffcanvasLabel">Add or Top-Up Loan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form id="topUpLoanForm">
+            <!-- Borrower ID -->
+            <input type="hidden" id="hiddenBorrowerTopUpId" name="borrowerId" />
+
+            <!-- Row Layout for Inputs -->
+            <div class="row g-3">
+                <!-- Current Principal Amount -->
+
+                <!-- Top-Up Amount -->
+                <div class="col-md-6">
+                    <label for="topUpAmount" class="form-label">Top-Up Amount</label>
+                    <input type="number" class="form-control" id="topUpAmountTopUp" name="loanPrincipalAmount" placeholder="Enter Top-Up Amount" required>
+                </div>
+
+
+                <!-- Loan Period -->
+                <div class="col-md-6">
+                    <label for="loanPeriod" class="form-label">Loan Period (Months)</label>
+                    <input type="range" class="form-range" id="loanPeriodTopUp" name="loanPeriod" min="1" max="500" value="12">
+                    <p class="text-center mb-0"><strong><span id="loanPeriodValueTopUp">12</span> Months</strong></p>
+                </div>
+
+                <!-- Interest Rate -->
+                <div class="col-md-6">
+                    <label for="loanInterestRate" class="form-label">Interest Rate (%)</label>
+                    <input type="range" class="form-range" id="loanInterestRateTopUp" name="interestRate" min="1" max="50" step="0.1" value="10">
+                    <p class="text-center mb-0"><strong><span id="interestRateValueTopUp">10</span>%</strong></p>
+                </div>
+
+                <!-- Disbursed Date -->
+                <div class="col-md-6">
+                    <label for="disbursedDate" class="form-label">Disbursed Date</label>
+                    <input type="date" class="form-control" id="disbursedDateTopUp" name="disbursedDate" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="closureDate" class="form-label">Closure Date</label>
+                    <input type="date" class="form-control" id="closureDateTopUp" name="closureDate" readonly>
+                </div>
+            </div>
+
+            <!-- EMI Calculation Section -->
+            <div class="my-4 p-4 text-center shadow-sm rounded bg-light">
+                <h5 class="mb-3">Interest Calculation</h5>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <p><strong>New Principal:</strong> <span id="emiPrincipalTopUp">0</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Interest Rate:</strong> <span id="emiInterestTopUp">0</span>%</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Loan Period:</strong> <span id="emiPeriodTopUp">0</span> Months</p>
+                    </div>
+                </div>
+                <h4 class="mt-3">Estimated Interest: <span id="monthlyInterestAmountTopUp">0</span></h4>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Add/Update Loan</button>
         </form>
     </div>
 </div>
@@ -498,14 +571,55 @@ include_once "leftBar.php";
 
             if (principal > 0 && rate > 0) {
                 // Calculate monthly interest
-                const monthlyInterest = (principal * rate) / 100 ; // Interest for one month
+                const monthlyInterest = (principal * rate) / 100; // Interest for one month
                 $('#monthlyInterestAmount').text(formatAmount(monthlyInterest.toFixed(2)));
             } else {
                 $('#monthlyInterestAmount').text(0);
             }
         }
 
+        $('#loanPeriodTopUp').on('input', function() {
+            const periodValue = $(this).val();
+            $('#loanPeriodValueTopUp').text(periodValue);
 
+            topUpCalculation();
+        });
+
+        // Update Interest Rate Value
+        $('#loanInterestRateTopUp').on('input', function() {
+            const interestValue = $(this).val();
+            $('#interestRateValueTopUp').text(interestValue);
+
+            topUpCalculation();
+        });
+
+        // Update Principal Amount
+        $('#topUpAmountTopUp').on('input', function() {
+            const principalValue = $(this).val();
+
+            topUpCalculation();
+        });
+
+        function topUpCalculation() {
+            const principal = parseFloat($('#topUpAmountTopUp').val()) || 0;
+            const rate = parseFloat($('#loanInterestRateTopUp').val()) || 0;
+            const period = parseInt($('#loanPeriodTopUp').val()) || 0;
+
+            // Display input values
+            $('#emiPeriodTopUp').text(period);
+            $('#emiInterestTopUp').text(rate);
+            $('#emiPrincipalTopUp').text(formatAmount(principal));
+
+            if (principal > 0 && rate > 0) {
+                // Calculate monthly interest
+                const monthlyInterest = (principal * rate) / 100; // Interest for one month
+                $('#monthlyInterestAmountTopUp').text(formatAmount(monthlyInterest.toFixed(2)));
+            } else {
+                $('#monthlyInterestAmountTopUp').text(0);
+            }
+        }
+
+        topUpCalculation();
         // Initialize EMI on Load
         calculateMonthlyInterest();
     });
@@ -515,6 +629,22 @@ include_once "leftBar.php";
 <script>
     var ABS_URL = '<?php echo ABS_URL ?>';
     var iUserID = "<?php echo $iUserID; ?>";
+
+    document.getElementById('exportToExcel').addEventListener('click', function() {
+        const nameFilter = $('#filterBorrowerName').val();
+        const amountFilter = $('#filterLoanAmount').val();
+        const sToDateFilter = $('#filterToDate').val();
+        const sFromDateFilter = $('#filterFromDate').val();
+        window.location.href = 'ExportPDFExcel/exportBorrowerExcelAndPDF.php?export=excel&name='+nameFilter+'&amount='+amountFilter+ '&sFromDate=' + sFromDateFilter+'&sToDate='+sToDateFilter;
+    });
+
+    document.getElementById('exportToPDF').addEventListener('click', function() {
+        const nameFilter = $('#filterBorrowerName').val();
+        const amountFilter = $('#filterLoanAmount').val();
+        const sToDateFilter = $('#filterToDate').val();
+        const sFromDateFilter = $('#filterFromDate').val();
+        window.location.href = 'ExportPDFExcel/exportBorrowerExcelAndPDF.php?export=pdf&name='+nameFilter+'&amount='+amountFilter+ '&sFromDate=' + sFromDateFilter+'&sToDate='+sToDateFilter;
+    });
 </script>
 
 <script src="controller/borrowerManagerController.js"></script>
