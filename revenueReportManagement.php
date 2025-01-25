@@ -23,7 +23,7 @@ include_once "leftBar.php";
         <h1>Revenue Report Management</h1>
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="BorrowerManagement.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="dashboard.php">Home</a></li>
                 <li class="breadcrumb-item active">Revenue Report</li>
             </ol>
         </nav>
@@ -63,7 +63,7 @@ include_once "leftBar.php";
                                         <select id="loanStatus" class="form-select form-select-sm">
                                             <option value="">All</option>
                                             <option value="active">Active</option>
-                                            <option value="done">Done</option>
+                                            <option value="closed">Closed</option>
                                         </select>
                                     </div>
                                     <div class="col-sm-2">
@@ -94,7 +94,9 @@ include_once "leftBar.php";
                                                         <th>Penalties Collected</th>
                                                         <th>Referral Collected</th>
                                                         <th>Net Revenue</th>
+                                                        <th>EMI COUNT</th>
                                                         <th>Outstanding Principal</th>
+                                                        <th>Total Payment Done</th>
                                                         <th>Status</th>
                                                     </tr>
                                                 </thead>

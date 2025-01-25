@@ -23,7 +23,7 @@ include_once "leftBar.php";
         <h1>Pending Payment</h1>
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="BorrowerManagement.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="dashboard.php">Home</a></li>
                 <li class="breadcrumb-item active">Pending Payment</li>
             </ol>
         </nav>
@@ -53,9 +53,13 @@ include_once "leftBar.php";
                                         <label for="filterLoanAmount">Loan Amount</label>
                                         <input type="number" id="filterLoanAmount" class="form-control" placeholder="Search by amount">
                                     </div>
-                                    <div class="col-sm-3 col-lg">
-                                        <label for="filterLoanDate">Loan Date</label>
-                                        <input type="date" id="filterLoanDate" class="form-control">
+                                    <div class="col-sm-2">
+                                        <label for="filterLoanDate">From Date</label>
+                                        <input type="date" id="filterFromDate" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <label for="filterLoanDate">To Date</label>
+                                        <input type="date" id="filterToDate" class="form-control">
                                     </div>
                                     <div class="col-sm-3 col-lg">
                                         <button id="searchId" class="btn btn-primary btn-sm mt-4"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -68,7 +72,7 @@ include_once "leftBar.php";
                                         </div>
                                     </div>
                                 </div>
-                            
+
                             </div>
 
                             <div class="card-body">
@@ -113,3 +117,25 @@ include_once "leftBar.php";
 <?php include_once "CDN_Footer.php"; ?>
 
 <script src="controller/emiListingController.js"></script>
+
+<script>
+    $('#exportToPDF').on('click', () => {
+        var sFilterBorrowerId = $('#borrowerSelectId').val();
+        var sFilterLoanAmount = $('#filterLoanAmount').val();
+        var sFilterFromDate = $('#filterFromDate').val();
+        var sFilterToDate = $('#filterToDate').val();
+
+        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=pdf&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount;
+
+    });
+
+    $('#exportToExcel').on('click', () => {
+        var sFilterBorrowerId = $('#borrowerSelectId').val();
+        var sFilterLoanAmount = $('#filterLoanAmount').val();
+        var sFilterFromDate = $('#filterFromDate').val();
+        var sFilterToDate = $('#filterToDate').val();
+
+        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=excel&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount;
+
+    });
+</script>

@@ -2,6 +2,26 @@ $(document).ready(function () {
     // Select elements
     const revenueTableBody = $('#revenueBodyId');
 
+    $('#exportToPDF').on('click',()=>{
+        const borrowerSelect = $('#borrowerSelectId').val();
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const loanStatus = $('#loanStatus').val();
+        const principalAmount = $('#principalAmount').val();
+
+        window.location.href = 'ExportPDFExcel/exportMISRevenueReport.php?export=pdf&borrowerId=' + borrowerSelect + '&sFromDate=' + startDate + '&sToDate=' + endDate + '&sLoanAmount=' + loanStatus+'&principalAmount='+principalAmount;
+    });
+
+    $('#exportToExcel').on('click',()=>{
+        const borrowerSelect = $('#borrowerSelectId').val();
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const loanStatus = $('#loanStatus').val();
+        const principalAmount = $('#principalAmount').val();
+
+        window.location.href = 'ExportPDFExcel/exportMISRevenueReport.php?export=excel&borrowerId=' + borrowerSelect + '&sFromDate=' + startDate + '&sToDate=' + endDate + '&sLoanAmount=' + loanStatus+'&principalAmount='+principalAmount;
+    });
+
     $('#borrowerSelectId').select2({
         placeholder: 'Select Borrower',
         allowClear: true,
@@ -114,7 +134,9 @@ $(document).ready(function () {
                 formatAmount(item.penalty_income),
                 formatAmount(item.referral_expense),
                 formatAmount(item.net_revenue),
+                item.emi_count ? item.emi_count : 0,
                 formatAmount(item.outstanding_principal),
+                formatAmount(item.total_paid_by_borrower),
 
                 `<span style="color: ${statusColor};">${item.loan_status}</span>`,
                 item.revenue_report_date

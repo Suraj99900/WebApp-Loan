@@ -1,1 +1,15 @@
-dummy
+SELECT A.name,
+A.id,
+A.unique_borrower_id,
+D.total_interest,
+D.penalty_income,
+D.referral_expense,
+D.net_revenue,
+B.ending_principal as outstanding_principal,
+D.emi_count,
+C.principal_paid +D.net_revenue as Total ,
+B.loan_status FROM app_borrower_master A INNER JOIN app_loan_details B ON A.id=B.borrower_id 
+LEFT JOIN app_borrower_loan_payments C ON B.loan_id=C.loan_id LEFT JOIN app_revenue_report D ON B.loan_id=D.loan_id
+ WHERE(A.status=1)AND(B.status=1)GROUP BY A.id,
+B.loan_id,
+D.report_id ORDER BY D.calculated_on DESC

@@ -2,6 +2,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const borrowerSelect = document.getElementById("borrowerSelectId");
     const emiBodyId = document.getElementById("emiBodyId");
 
+    $('#searchId').on('click',()=>{
+        const sFilterBorrowerId = $('#borrowerSelectId').val();
+        const sFilterLoanAmount = $('#filterLoanAmount').val();
+        const sFilterFromDate = $('#filterFromDate').val();
+        const sFilterToDate = $('#filterToDate').val();
+        initializeEMITable(sFilterBorrowerId,sFilterLoanAmount,sFilterFromDate,sFilterToDate);
+    });
+
+    $('#filterRefresh').on('click',()=>{
+        $('#borrowerSelectId').val('');
+        $('#filterLoanAmount').val('');
+        $('#filterFromDate').val('');
+        $('#filterToDate').val('');
+        initializeEMITable();
+    });
+
     // Fetch borrowers and populate the dropdown
     function fetchBorrowers() {
         fetch("ajaxFile/ajaxBorrower.php?sFlag=fetchAllBorrowers")
@@ -44,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-function initializeEMITable(borrowerId = '') {
+function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate='',sFilterToDate='') {
 
     
     // Destroy any existing instance of DataTable
@@ -61,7 +77,10 @@ function initializeEMITable(borrowerId = '') {
             type: 'POST',
             data: {
                 sFlag: 'fetchEMIListing',
-                borrowerId: borrowerId
+                borrowerId: borrowerId,
+                sFromDate: sFilterFromDate,
+                sToDate: sFilterToDate,
+                sLoanAmount: sFilterLoanAmount
             }
         },
         columns: [

@@ -143,7 +143,7 @@ function login() {
                             dataType: "json",
                             success: function (sessionData) {
                                 if (sessionData.iUserID != '') {
-                                    window.location.href = "BorrowerManagement.php";
+                                    window.location.href = "dashboard.php";
                                 } else {
                                     responsePop('Error', 'Failed to log in', 'error', 'ok');
                                 }
