@@ -82,7 +82,7 @@ include_once "leftBar.php";
                                 <h5 class="card-title">Revenue Summary</h5>
                                 <div class="row">
                                     <!-- Total Revenue -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="info-box text-center">
                                             <i class="bi bi-currency-dollar text-success"></i>
                                             <h4 class="text-dark">Total Revenue</h4>
@@ -90,7 +90,7 @@ include_once "leftBar.php";
                                         </div>
                                     </div>
                                     <!-- Total Payment Done -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="info-box text-center">
                                             <i class="bi bi-credit-card text-warning"></i>
                                             <h4 class="text-dark">Total Payment Done</h4>
@@ -98,7 +98,7 @@ include_once "leftBar.php";
                                         </div>
                                     </div>
                                     <!-- Total Penalty -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="info-box text-center">
                                             <i class="bi bi-exclamation-circle text-danger"></i>
                                             <h4 class="text-dark">Total Penalty</h4>
@@ -106,11 +106,27 @@ include_once "leftBar.php";
                                         </div>
                                     </div>
                                     <!-- Total Referral -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="info-box text-center">
                                             <i class="bi bi-share text-primary"></i>
                                             <h4 class="text-dark">Total Referral</h4>
                                             <h5 class="px-4 text-primary" id="totalReferral">Loading...</h5>
+                                        </div>
+                                    </div>
+                                    <!-- Pending Principal -->
+                                    <div class="col-md-2">
+                                        <div class="info-box text-center">
+                                            <i class="bi bi-bar-chart text-info"></i>
+                                            <h4 class="text-dark">Total Pending Principal</h4>
+                                            <h5 class="px-4 text-info" id="pendingPrincipal">Loading...</h5>
+                                        </div>
+                                    </div>
+                                    <!-- Paid Principal -->
+                                    <div class="col-md-2">
+                                        <div class="info-box text-center">
+                                            <i class="bi bi-graph-up text-success"></i>
+                                            <h4 class="text-dark">Total Paid Principal</h4>
+                                            <h5 class="px-4 text-success" id="paidPrincipal">Loading...</h5>
                                         </div>
                                     </div>
                                 </div>
@@ -135,8 +151,8 @@ include_once "leftBar.php";
                                         <button id="dateFilterForm" class="btn mt-3 btn-primary"><i class="fa-solid fa-magnifying-glass"></i></button>
                                     </div>
                                     <div class="col d-flex align-items-center justify-content-end">
-                                    <button id="exportPdf" class="btn mt-3 btn-danger" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
-                                    <button id="exportExcel" class="btn mt-3 btn-success" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
+                                        <button id="exportPdf" class="btn mt-3 btn-danger" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                                        <button id="exportExcel" class="btn mt-3 btn-success" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
                                     </div>
                                 </div>
                                 <h5 class="card-title">Monthly Revenue Breakdown</h5>

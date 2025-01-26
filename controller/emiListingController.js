@@ -108,7 +108,7 @@ function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate
             {
                 data: 'payment_due_date',
                 title: 'Payment Due Date',
-                render: (data) => data ? new Date(data).toLocaleDateString('en-IN') : 'N/A' // Format date
+                render: (data) => data ? moment(data).format('MMM DD YYYY') : 'N/A' // Format date
             },
             {
                 data: 'payment_status',

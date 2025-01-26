@@ -26,7 +26,7 @@ final class BorrowerManager
             $oResult = $this->oQueryBuilder->executeQuery();
             $aRows = $oResult->fetchAllAssociative();
             $borrowerCount = $aRows[0]['count'] + 1;
-            $uniqueBorrowerId = 'BU-' . str_pad($borrowerCount, 2, '0', STR_PAD_LEFT); 
+            $uniqueBorrowerId = 'SM-' . str_pad($borrowerCount, 2, '0', STR_PAD_LEFT); 
     
             
             // Build the query
@@ -81,6 +81,7 @@ final class BorrowerManager
                     'C.ref_name',
                     'C.ref_percentage',
                     'C.ref_phone_number',
+                    'C.reference_Id',
                     'D.*'
                 )
                 ->from('app_borrower_master', 'A')

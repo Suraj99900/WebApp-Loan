@@ -45,7 +45,7 @@ $(document).ready(function () {
 
                         return {
                             id: item.id,
-                            text: item.name
+                            text: item.name+" ("+item.unique_borrower_id+")"
                         };
                     })
                 };
@@ -136,6 +136,7 @@ $(document).ready(function () {
                 formatAmount(item.net_revenue),
                 item.emi_count ? item.emi_count : 0,
                 formatAmount(item.outstanding_principal),
+                formatAmount(item.repaid_principal),
                 formatAmount(item.total_paid_by_borrower),
 
                 `<span style="color: ${statusColor};">${item.loan_status}</span>`,

@@ -96,6 +96,7 @@ include_once "leftBar.php";
                                                         <th>Net Revenue</th>
                                                         <th>EMI COUNT</th>
                                                         <th>Outstanding Principal</th>
+                                                        <th>Principal Repaid</th>
                                                         <th>Total Payment Done</th>
                                                         <th>Status</th>
                                                     </tr>

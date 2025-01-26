@@ -6,6 +6,7 @@ include_once "../classes/class.Input.php";
 include "../classes/BorrowerManager.php";
 include "../classes/DocumentManager.php";
 include_once "../classes/LoanManager.php";
+include_once "../classes/DocumentReferral.php";
 
 // Assuming a POST request with borrower ID
 if (isset($_REQUEST['borrower_id'])) {
@@ -44,7 +45,7 @@ if (isset($_REQUEST['borrower_id'])) {
     // Borrower Details Section
     $pdf->SetFont('helvetica', '', 12);
     $html = '
-        <p>I, Mr/Ms. <b>' . $aBorrower['name'] . '</b>  <b>(' . $aBorrower['phone_no'] . ')</b>, 
+        <p>I, Mr/Ms. <b>' . ucfirst($aBorrower['name']) . '</b>  <b>(' . $aBorrower['phone_no'] . ')</b>, 
         hereby acknowledge that I have borrowed a sum of INR <b>' . $aBorrower['principal_amount']. '</b>' . '
         from Mr. Sandeep Siddharth More.</p>
     ';
@@ -55,7 +56,7 @@ if (isset($_REQUEST['borrower_id'])) {
         <br>
         <h4>Repayment Terms</h4>
         <p>I promise to repay the said amount to Mr. Sandeep S More within a period of <b>' . $aBorrower['loan_period'] . ' months </b>. 
-        In case I am unable to repay, my family '.($aBorrower['ref_name'] ? 'or. Witness <b>'.$aBorrower['ref_name'].'</b> <b>('.$aBorrower['ref_phone_number']. ')</b> ':'') .'will repay the amount on my behalf.</p>
+        In case I am unable to repay, my family '.($aBorrower['ref_name'] ? 'or. Witness <b>'.ucfirst($aBorrower['ref_name']).'</b> <b>('.$aBorrower['ref_phone_number']. ')</b> ':'') .'will repay the amount on my behalf.</p>
     ';
     $pdf->writeHTML($repaymentTerms, true, false, true, false, '');
 
@@ -75,10 +76,25 @@ if (isset($_REQUEST['borrower_id'])) {
     }
     $pdf->Ln(5);
 
+    if($aBorrower['reference_Id']){
+        $pdf->SetFont('helvetica', '', 12);
+        $repaymentTerms = '
+            <br>
+            <p> Witness <b>'.ucfirst($aBorrower['ref_name']).'</b> <b>('.$aBorrower['ref_phone_number']. ')</b> have submitted the following documents to Mr. Sandeep S More:</p>
+        ';
+        $pdf->writeHTML($repaymentTerms, true, false, true, false, '');
+        $aReferralDocuments = (new DocumentReferral())->getAllDocumentsByReferralId($aBorrower['reference_Id']);// Assuming documents are stored as comma-separated values
+        foreach ($aReferralDocuments as $doc) {
+            $sNameParts = explode('.',$doc['document_name'])[0];
+    
+            $pdf->Cell(0, 10, '- ' . $sNameParts, 0, 1);
+        }
+        $pdf->Ln(5);
+    }
+
     // Footer with Date and Signature
     $footer = '
         <br>
-        <h4>Agreement Details</h4>
         <p>Date: <b>' . $aBorrower['disbursed_date'] . '</b></p>
         <p>Signature: <b>__________________________</b></p>
         Mr/Ms.'.$aBorrower['name'].'

@@ -31,6 +31,7 @@ final class MIS
                 'B.ending_principal as outstanding_principal',
                 'D.emi_count',
                 '(B.repaid_principal + D.net_revenue) AS total_paid_by_borrower',
+                'B.repaid_principal',
                 'B.loan_status'
             )
                 ->from('app_borrower_master', 'A')
@@ -167,13 +168,30 @@ final class MIS
                     ->setParameter('toDate', $sToDate);
             }
 
+
+
+            $oQueryBuilder2 = $this->oConnection->conn->createQueryBuilder();
+            $oQueryBuilder2
+                ->select(
+                    "SUM(ending_principal) AS total_pending_principal",
+                    "sum(repaid_principal) as total_repaid_principal"
+                )
+                ->from("app_loan_details");
+
             // Execute the query
             $oResult = $oQueryBuilder->executeQuery();
-
             // Fetch results
             $aMonthlyData = $oResult->fetchAllAssociative();
 
-            return $aMonthlyData;
+            $oResult2 = $oQueryBuilder2->executeQuery();
+
+            $aMonthlyData2 = $oResult2->fetchAllAssociative();
+            
+            $aData = [
+                "aMonthlyData"=> $aMonthlyData,
+                "TotalData" => $aMonthlyData2
+            ];
+            return $aData;
         } catch (\Exception $e) {
             return [
                 "success" => false,
@@ -187,18 +205,18 @@ final class MIS
         try {
             // Prepare an array to store the results
             $dashboardData = [];
-    
+
             // Fetch total borrowers (active users)
             $oQueryBuilder1 = $this->oConnection->conn->createQueryBuilder();
             $oQueryBuilder1
                 ->select('COUNT(DISTINCT B.id) AS totalBorrowers')
                 ->from('app_borrower_master', 'B')
                 ->where('B.status = 1');
-    
+
             // Execute the query for total borrowers
             $oResult_1 = $oQueryBuilder1->executeQuery();
             $dashboardData['totalBorrowers'] = $oResult_1->fetchOne(); // Single value, no need for fetchAllAssociative
-    
+
             // Fetch total referral users (assuming referral users are in a separate table or identified by a field)
             $oQueryBuilder2 = $this->oConnection->conn->createQueryBuilder();
             $oQueryBuilder2
@@ -206,11 +224,11 @@ final class MIS
                 ->from('app_referral_user', 'C')
                 ->where('C.status = 1')
                 ->andWhere('C.deleted = 0');
-    
+
             // Execute the query for total referral users
             $oResult_2 = $oQueryBuilder2->executeQuery();
             $dashboardData['totalReferralUsers'] = $oResult_2->fetchOne();
-    
+
             // Fetch total payments (assuming total payments are in a payment table)
             $oQueryBuilder3 = $this->oConnection->conn->createQueryBuilder();
             $oQueryBuilder3
@@ -218,21 +236,21 @@ final class MIS
                 ->from('app_borrower_loan_payments', 'P')
                 ->where('P.status = 1')  // Only active payments
                 ->andWhere('P.deleted = 0'); // Non-deleted payments
-    
+
             // Execute the query for total payments
             $oResult_3 = $oQueryBuilder3->executeQuery();
             $dashboardData['totalPayments'] = $oResult_3->fetchOne();
-    
+
             // Fetch total revenue
             $oQueryBuilder4 = $this->oConnection->conn->createQueryBuilder();
             $oQueryBuilder4
                 ->select('SUM(D.net_revenue) AS totalRevenue')
                 ->from('app_revenue_report', 'D');
-    
+
             // Execute the query for total revenue
             $oResult_4 = $oQueryBuilder4->executeQuery();
             $dashboardData['totalRevenue'] = $oResult_4->fetchOne();
-    
+
             // Return the data as a JSON response
             return [
                 "success" => true,
@@ -241,7 +259,6 @@ final class MIS
                 "totalPayments" => $dashboardData['totalPayments'],
                 "totalRevenue" => $dashboardData['totalRevenue']
             ];
-    
         } catch (\Exception $e) {
             return [
                 "success" => false,
@@ -249,5 +266,4 @@ final class MIS
             ];
         }
     }
-    
 }

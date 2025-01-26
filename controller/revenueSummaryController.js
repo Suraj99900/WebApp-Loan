@@ -5,7 +5,8 @@ $(document).ready(function () {
     const totalReferralElement = $("#totalReferral");
     const totalUsersElement = $("#totalUsers");
     const monthlyRevenueBody = $("#monthlyRevenueBody");
-
+    const pendingPrincipal = $("#pendingPrincipal");
+    const paidPrincipal = $("#paidPrincipal");
     // Function to fetch revenue data based on date range
     function fetchRevenueData(fromDate, toDate) {
         $.getJSON("ajaxFile/ajaxMIS.php", {
@@ -18,12 +19,14 @@ $(document).ready(function () {
                 var iTotalPaymentDone = 0.0;
                 var iTotalPenalty = 0.0;
                 var iTotalReferral = 0.0;
+                var iTotalPendingPrincipal = 0.0;
+                var iTotalRepaidPrincipal = 0.0
 
                 // Clear previous rows
                 monthlyRevenueBody.empty();
 
                 // Populate monthly breakdown
-                $.each(data.data.monthlyBreakdown, function (index, item) {
+                $.each(data.data.monthlyBreakdown.aMonthlyData, function (index, item) {
                     monthlyRevenueBody.append(`
                         <tr>
                             <td>${item.month}</td>
@@ -42,12 +45,16 @@ $(document).ready(function () {
                     iTotalReferral += parseFloat(item.total_referral_amount);
                 });
 
+
                 // Update total revenue, payment, penalty, referral, and total users
                 totalRevenueElement.text(`${formatAmount(iTotalRevenue)}`);
                 totalPaymentDoneElement.text(`${formatAmount(iTotalPaymentDone)}`);
                 totalPenaltyElement.text(`${formatAmount(iTotalPenalty)}`);
                 totalReferralElement.text(`${formatAmount(iTotalReferral)}`);
                 totalUsersElement.text(data.data.totalUsers);
+                
+                paidPrincipal.text(formatAmount(data.data.monthlyBreakdown.TotalData[0].total_repaid_principal));
+                pendingPrincipal.text(formatAmount(data.data.monthlyBreakdown.TotalData[0].total_pending_principal));
             } else {
                 // Error handling in case of failure
                 totalRevenueElement.text("Error loading data");

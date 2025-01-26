@@ -42,7 +42,7 @@ $(document).ready(function () {
                     results: data.data.map(function (item) {
                         return {
                             id: item.id,
-                            text: item.name
+                            text: item.name+" ("+item.unique_borrower_id+")"
                         };
                     })
                 };
@@ -74,7 +74,7 @@ $(document).ready(function () {
 
                         return {
                             id: item.id,
-                            text: item.name
+                            text: item.name+" ("+item.unique_borrower_id+")"
                         };
                     })
                 };
@@ -316,11 +316,12 @@ function fetchLoanDetails(sName = '', sFromDateFilter='',sToDateFilter='', sPaym
                 for (var i = 0; i < json.data.length; i++) {
                     returnData.push([
                         i + 1, // Sr.no
-                        json.data[i].name,
+                        json.data[i].name+"<b> ("+json.data[i].unique_borrower_id+")</b>",
                         formatAmount(json.data[i].payment_amount),
                         formatAmount(json.data[i].penalty_amount),
                         formatAmount(json.data[i].referral_share_amount),
                         json.data[i].mode_of_payment,
+                        json.data[i].comments,
                         moment(json.data[i].received_date).format('MMM DD YYYY'),
                         moment(json.data[i].interest_date).format('MMM DD YYYY'),
                         json.data[i].payment_status
@@ -336,6 +337,7 @@ function fetchLoanDetails(sName = '', sFromDateFilter='',sToDateFilter='', sPaym
             { "title": "Penalty" },
             { "title": "Referral Share" },
             { "title": "Payment Mode" },
+            { "title": "Comments" },
             { "title": "Received Date" },
             { "title": "Due Date" },
             { "title": "Status" }

@@ -32,6 +32,7 @@ final class LoanPaymentManager
                     'principal_paid' => ':principal_paid',
                     'payment_status' => ':payment_status',
                     'mode_of_payment' => ':mode_of_payment',
+                    'comments' => ':comments',
                     'interest_date' => ':interest_date',
                     'status' => ':status',
                     'deleted' => ':deleted'
@@ -47,6 +48,7 @@ final class LoanPaymentManager
                 ->setParameter('payment_status', $paymentData['payment_status'])
                 ->setParameter('mode_of_payment', $paymentData['mode_of_payment'])
                 ->setParameter('interest_date', $paymentData['interest_date'])
+                ->setParameter('comments', $paymentData['comments'])
                 ->setParameter('status', 1)  // Default status as 1 (active)
                 ->setParameter('deleted', 0); // Default deleted as 0 (not deleted)
 
@@ -200,7 +202,7 @@ final class LoanPaymentManager
     
         try {
             // Start building the query
-            $this->oQueryBuilder->select('A.*,C.name, C.id AS borrower_id, C.phone_no')
+            $this->oQueryBuilder->select('A.*,C.name, C.id AS borrower_id, C.phone_no,C.unique_borrower_id')
                 ->from($sTableName, 'A')
                 ->leftJoin('A', $sJoinTableLoanDetails, 'B', 'B.loan_id = A.loan_id AND B.deleted = 0')
                 ->leftJoin('B', $sJoinTableBorrowerMaster, 'C', 'C.id = B.borrower_id')

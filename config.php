@@ -13,7 +13,7 @@ define('DASHBOARD_INDEX_LOCATION','http://localhost/WebApp-Loan/view/Dashboard.p
 
 
 // Project Name Configuration
-define("ORG_NAME","WebApp Loan");
+define("ORG_NAME","SM Loan");
 define("DEFAULT_PENALTY","10");
 define("DEFAULT_DAY","10");
 

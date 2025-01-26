@@ -647,8 +647,8 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDa
                         borrower.phone_no,
                         borrower.email,
                         formatAmount(borrower.total_principal) || '-',
-                        moment(borrower.disbursed_date).format('MMM DD YYYY') || '',
-                        moment(borrower.closure_date).format('MMM DD YYYY') || '',
+                        borrower.disbursed_date ? moment(borrower.disbursed_date).format('MMM DD YYYY') :'',
+                        borrower.disbursed_date ? moment(borrower.closure_date).format('MMM DD YYYY') : '',
                         (borrower.loan_status || 'inactive').toUpperCase(),
                         `
                             <div style="display: flex;">

@@ -162,3 +162,6 @@ CREATE TABLE app_referral_document (
     deleted TINYINT DEFAULT 0,
     FOREIGN KEY (referral_id) REFERENCES app_referral_user(reference_Id)
 );
+
+
+alter table app_borrower_loan_payments add column comments varchar(255) after mode_of_payment;
