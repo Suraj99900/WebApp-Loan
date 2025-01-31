@@ -24,7 +24,7 @@ include_once "leftBar.php";
         <h1>Loan Payment Management</h1>
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="BorrowerManagement.php">Home</a></li>
+                <li class="breadcrumb-item"><a href="dashboard.php">Home</a></li>
                 <li class="breadcrumb-item active">Loan Payment Management</li>
             </ol>
         </nav>
@@ -100,6 +100,7 @@ include_once "leftBar.php";
                                                         <th>Penalty</th>
                                                         <th>Referral Share</th>
                                                         <th>Payment Mode</th>
+                                                        <th>Comments</th>
                                                         <th>Received Date</th>
                                                         <th>Due Date</th>
                                                         <th>Status</th>
@@ -172,7 +173,7 @@ include_once "leftBar.php";
                 <!-- Penalty Amount -->
                 <div class="col-md-6">
                     <label for="penaltyAmount" class="form-label">Penalty Amount</label>
-                    <input type="number" class="form-control" id="penaltyAmount" name="penalty_amount" placeholder="Enter Penalty Amount" step="0.01" readonly>
+                    <input type="number" class="form-control" id="penaltyAmount" name="penalty_amount" placeholder="Enter Penalty Amount" step="0.01">
                 </div>
 
                 <!-- Referral Share -->
@@ -190,6 +191,10 @@ include_once "leftBar.php";
                         <option value="Bank Transfer">Bank Transfer</option>
                         <option value="Cheque">Cheque</option>
                     </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="sComments" class="form-label">Comments</label>
+                    <textarea class="form-control" id="sComments" name="sComments" ></textarea>
                 </div>
 
                 <!-- Received Date -->
@@ -267,6 +272,11 @@ include_once "leftBar.php";
                         <option value="Bank Transfer">Bank Transfer</option>
                         <option value="Cheque">Cheque</option>
                     </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="sComments" class="form-label">Comments</label>
+                    <textarea class="form-control" id="sComments" name="sComments" ></textarea>
                 </div>
 
                 <!-- Received Date -->

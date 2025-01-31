@@ -62,12 +62,13 @@ final class EMIScheduleManager
         }
     }
 
-    public function generateNewEMIForSameLoan($loanId, $fNewLoanAmount, $fInterestRate, $iLoanTenure, $aLastEMI){
+    public function generateNewEMIForSameLoan($loanId, $fNewLoanAmount, $fInterestRate, $iLoanTenure, $aLastEMI)
+    {
         // Use the ending principal of the previous EMI as the beginning principal
         $fBeginningPrincipal = $aLastEMI['ending_principal'];
         $iNewEndingPrincipal = (float)$aLastEMI['ending_principal'] - (float)$fNewLoanAmount;
         $iNewPrincipalRepaid = (float)$aLastEMI['principal_repaid'] + (float)$fNewLoanAmount;
-         // Calculate interest amount using the  formula
+        // Calculate interest amount using the  formula
         $iInterestAmount = ($iNewEndingPrincipal * $fInterestRate) / 100;
 
         $aEmiData = [
@@ -240,8 +241,8 @@ final class EMIScheduleManager
                 ->where('loan_id = :loan_id')
                 ->andWhere('status = :checkStatus')
                 ->andWhere('deleted = :checkDeleted')
-                ->setParameter('checkStatus',1)
-                ->setParameter('checkDeleted',0)
+                ->setParameter('checkStatus', 1)
+                ->setParameter('checkDeleted', 0)
                 ->setParameter('month_no', $emiData['month_no'])
                 ->setParameter('beginning_principal', $emiData['beginning_principal'])
                 ->setParameter('interest_amount', $emiData['interest_amount'])
@@ -349,7 +350,7 @@ final class EMIScheduleManager
         }
     }
 
-    public function getAllEMISchedulesByBorrowerId($iBorrowerId = '')
+    public function getAllEMISchedulesByBorrowerId($iBorrowerId = '', $dFromDate = '', $dToDate = '', $sLoanAmount = '')
     {
         try {
             // Build the query with JOINs
@@ -358,18 +359,32 @@ final class EMIScheduleManager
                 ->leftJoin('A', 'app_loan_details', 'B', 'B.loan_id = A.loan_id AND A.deleted = 0')
                 ->leftJoin('B', 'app_borrower_master', 'C', 'C.id = B.borrower_id AND C.deleted = 0')
                 ->where('A.deleted = 0')
-                ->orderBy('A.payment_status','DESC');
-                
-                
-                if($iBorrowerId == ''){
-                    $this->oQueryBuilder
-                        ->andWhere('A.payment_status = :sPaymentStatus')
-                        ->setParameter('sPaymentStatus', "pending");
-                }else{
-                    $this->oQueryBuilder
-                        ->andWhere('C.id = :borrower_id')
-                        ->setParameter('borrower_id', $iBorrowerId);
-                }
+                ->orderBy('A.payment_status', 'DESC');
+
+
+            if ($iBorrowerId == '') {
+                $this->oQueryBuilder
+                    ->andWhere('A.payment_status = :sPaymentStatus')
+                    ->setParameter('sPaymentStatus', "pending");
+            } else {
+                $this->oQueryBuilder
+                    ->andWhere('C.id = :borrower_id')
+                    ->setParameter('borrower_id', $iBorrowerId);
+            }
+
+            if ($dFromDate != "" && $dToDate != "") {
+                $this->oQueryBuilder
+                    ->andWhere("A.payment_due_date between :fromDate and :toDate")
+                    ->setParameter("fromDate", $dFromDate)
+                    ->setParameter("toDate", $dToDate);
+            }
+
+            if ($sLoanAmount != "") {
+                $this->oQueryBuilder
+                    ->andWhere("A.emi_amount = :emi_amount")
+                    ->setParameter("emi_amount", $sLoanAmount);
+            }
+
             // Execute the query
             $oResult = $this->oQueryBuilder->executeQuery();
             $aRows = $oResult->fetchAllAssociative();

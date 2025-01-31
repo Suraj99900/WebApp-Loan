@@ -15,10 +15,14 @@ try {
     switch ($sFlag) {
         case 'fetchEMIListing':
             $iBorrowerId = Input::request('borrowerId'); // Get the loan ID from the request, if provided
+            $dFromDate = Input::request('sFromDate') ?? '';
+            $dToDate = Input::request('sToDate') ?? '';
+            $dToDate = Input::request('sToDate') ?? '';
+            $sLoanAmount = Input::request('sLoanAmount') ?? '';
             $emiManager = new EMIScheduleManager();
 
             // Fetch EMI schedules for a specific loan ID
-            $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId);
+            $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId, $dFromDate, $dToDate, $sLoanAmount);
 
             if (!empty($oEMISchedules)) {
                 $response['status'] = 'success';

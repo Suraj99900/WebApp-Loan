@@ -38,14 +38,14 @@
     <!-- Template Main CSS File -->
     <link href="assets/css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="res/css/select2.min.css">
+  
+    <?php  
+    if (isset($_GET['message'])) {
+        // Generating a script alert for the message
+        echo "<script type='text/javascript'>alert('" . htmlspecialchars($_GET['message']) . "');</script>";
+    }
+    ?>
 
-    <!-- =======================================================
-  * Template Name: <?php echo ORG_NAME; ?>
-  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
-  * Updated: Apr 20 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body>

@@ -24,7 +24,7 @@ try {
             $status = Input::request('status') ?? '';
             $principalAmount = Input::request('principalAmount') ?? '';
             $mis = new MIS();
-            
+
             // Get the revenue report
             $aRevenueReport = $mis->getRevenueReport($borrowerId, $startDate, $endDate, $status, $principalAmount);
 
@@ -41,6 +41,51 @@ try {
                 $response['data'] = [];
                 $response['recordsTotal'] = count([]);
                 $response['recordsFiltered'] = count([]);
+            }
+            break;
+
+        case 'overallMISReport':
+
+            $sFromDate = input::request('fromDate') ?? '';
+            $sToDate = input::request('toDate') ?? '';
+
+            $oMis = new MIS();
+
+            $totalRevenue = $oMis->fetchTotalRevenue();
+            $totalUsers = $oMis->fetchTotalUsers();
+            $monthlyBreakdown = $oMis->fetchMonthlyBreakdown($sFromDate, $sToDate);
+
+            $aData = [
+                "totalRevenue" => $totalRevenue[0]['totalRevenue'] ?? 0,
+                "totalUsers" => $totalUsers[0]['totalUsers'] ?? 0,
+                "monthlyBreakdown" => $monthlyBreakdown
+            ];
+
+            if ($aData) {
+                $response['message'] = "Fetch Successfully";
+                $response['status'] = 'success';
+                $response['data'] = $aData;
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = "error";
+            }
+
+            break;
+
+        case 'fetchCount':
+
+            $oMis = new MIS();
+
+            // Fetch EMI schedules for a specific loan ID
+            $aData = $oMis->fetchDashboardCounts();
+
+            if ($aData) {
+                $response['message'] = "Fetch Successfully";
+                $response['status'] = 'success';
+                $response['data'] = $aData;
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = "error";
             }
             break;
 

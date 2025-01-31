@@ -40,8 +40,19 @@ if (session_status() == PHP_SESSION_NONE) {
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                     <li class="dropdown-header">
                         <h6><?php echo $oSessionManager->sUserName ?></h6>
-                        <span><?php echo $oSessionManager->sUserUniqueId ?> - <?php echo ($oSessionManager->iUserType == 1  ? "Admin": " Recovery User") ?></span>
+                        <span><?php echo $oSessionManager->sUserUniqueId ?> - <?php echo ($oSessionManager->iUserType == 1  ? "Admin" : " Recovery User") ?></span>
                     </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="ajaxFile/sendDump.php">
+                            <i class="bi bi-database"></i>
+                            <span>Send Dump</span>
+                        </a>
+                    </li>
+
                     <li>
                         <hr class="dropdown-divider">
                     </li>

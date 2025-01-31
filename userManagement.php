@@ -67,8 +67,8 @@ include_once "leftBar.php";
                                 </div>
                                 <div class="mt-3 float-end">
                                     <button id="addUser" data-bs-toggle="offcanvas" data-bs-target="#AddUserOffCanvasId" aria-controls="AddUserOffCanvasId" class="btn btn-primary">Add User</button>
-                                    <button id="exportUserExcel" class="btn btn-success" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
-                                    <button id="exportUserPDF" class="btn btn-success" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                                    <!-- <button id="exportUserExcel" class="btn btn-success" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
+                                    <button id="exportUserPDF" class="btn btn-success" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button> -->
                                 </div>
                             </div>
                             <!-- End Filter Section -->

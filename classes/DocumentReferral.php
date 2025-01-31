@@ -135,7 +135,7 @@ final class DocumentReferral
     }
 
     // Get all documents for a borrower
-    public function getAllDocumentsByBorrowerId($borrowerId)
+    public function getAllDocumentsByReferralId($iReferralId)
     {
         $sTableName = "app_referral_document";
 
@@ -145,7 +145,7 @@ final class DocumentReferral
                 ->from($sTableName)
                 ->where('referral_id = :referral_id')
                 ->andWhere('deleted = 0')  // Only fetch active documents
-                ->setParameter('referral_id', $borrowerId);
+                ->setParameter('referral_id', $iReferralId);
 
             // Execute the query
             $oResult = $this->oQueryBuilder->executeQuery();
