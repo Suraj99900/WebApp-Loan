@@ -56,6 +56,7 @@ if (isset($_REQUEST['borrower_id'])) {
         <h4>Repayment Terms</h4>
         <p>I promise to repay the said amount to Mr. Sandeep S More within a period of <b>' . $aBorrower['loan_period'] . ' months </b>. 
         In case I am unable to repay, my family '.($aBorrower['ref_name'] ? 'or. Witness <b>'.$aBorrower['ref_name'].'</b> <b>('.$aBorrower['ref_phone_number']. ')</b> ':'') .'will repay the amount on my behalf.</p>
+        <p>I hereby authorize <b>Mr. Sandeep More</b> to visit my house for recovery in case of delay in paying the borrowed amount, and I will be liable for additional charges including travel expenses.</p>
     ';
     $pdf->writeHTML($repaymentTerms, true, false, true, false, '');
 
