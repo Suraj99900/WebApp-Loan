@@ -42,7 +42,7 @@ function formatBorrowerData($borrowers)
             'Net Revenue' => formatCurrency($borrower['net_revenue'] ?? 0.00),
             'EMI COUNT' => $borrower['emi_count'] ?? 0,
             'Outstanding Principal' => formatCurrency($borrower['outstanding_principal'] ?? 0.00),
-            'Principal Repaid' => formatCurrency($borrower['repaid_principal'] ??0.00),
+            'Principal Repaid' => formatCurrency($borrower['repaid_principal'] ?? 0.00),
             'Total Payment Done' => formatCurrency($borrower['total_paid_by_borrower'] ?? 0.00),
             'Status' => $borrower['loan_status'] ?? '',
         ];
@@ -52,16 +52,34 @@ function formatBorrowerData($borrowers)
 function calculateTotals($data)
 {
     $totals = [
-        'Net Revenue' => 0,
+        'Total Interest Collected' => 0,
+        'Total Penalties Collected' => 0,
+        'Total Referral Collected' => 0,
+        'Total Net Revenue' => 0,
+        'Total EMI Count' => 0,
+        'Total Outstanding Principal' => 0,
+        'Total Principal Repaid' => 0,
         'Total Payment Done' => 0,
     ];
 
     foreach ($data as $row) {
-        $totals['Net Revenue'] += floatval(str_replace(',', '', $row['Net Revenue']));
+        $totals['Total Interest Collected'] += floatval(str_replace(',', '', $row['Interest Collected']));
+        $totals['Total Penalties Collected'] += floatval(str_replace(',', '', $row['Penalties Collected']));
+        $totals['Total Referral Collected'] += floatval(str_replace(',', '', $row['Referral Collected']));
+        $totals['Total Net Revenue'] += floatval(str_replace(',', '', $row['Net Revenue']));
+        $totals['Total EMI Count'] += intval($row['EMI COUNT']);
+        $totals['Total Outstanding Principal'] += floatval(str_replace(',', '', $row['Outstanding Principal']));
+        $totals['Total Principal Repaid'] += floatval(str_replace(',', '', $row['Principal Repaid']));
         $totals['Total Payment Done'] += floatval(str_replace(',', '', $row['Total Payment Done']));
     }
 
-    $totals['Net Revenue'] = formatCurrency($totals['Net Revenue']);
+    // Format totals
+    $totals['Total Interest Collected'] = formatCurrency($totals['Total Interest Collected']);
+    $totals['Total Penalties Collected'] = formatCurrency($totals['Total Penalties Collected']);
+    $totals['Total Referral Collected'] = formatCurrency($totals['Total Referral Collected']);
+    $totals['Total Net Revenue'] = formatCurrency($totals['Total Net Revenue']);
+    $totals['Total Outstanding Principal'] = formatCurrency($totals['Total Outstanding Principal']);
+    $totals['Total Principal Repaid'] = formatCurrency($totals['Total Principal Repaid']);
     $totals['Total Payment Done'] = formatCurrency($totals['Total Payment Done']);
 
     return $totals;
@@ -93,8 +111,13 @@ function exportToExcel($data)
 
     // Add totals row
     $totals = calculateTotals($data);
-    $sheet->setCellValue("E$row", 'Total:')->getStyle("E$row")->getFont()->setBold(true);
-    $sheet->setCellValue("F$row", $totals['Net Revenue'])->getStyle("F$row")->getFont()->setBold(true);
+    $sheet->setCellValue("A$row", 'Total:')->getStyle("A$row")->getFont()->setBold(true);
+    $sheet->setCellValue("C$row", $totals['Total Interest Collected'])->getStyle("C$row")->getFont()->setBold(true);
+    $sheet->setCellValue("D$row", $totals['Total Penalties Collected'])->getStyle("D$row")->getFont()->setBold(true);
+    $sheet->setCellValue("E$row", $totals['Total Referral Collected'])->getStyle("E$row")->getFont()->setBold(true);
+    $sheet->setCellValue("F$row", $totals['Total Net Revenue'])->getStyle("F$row")->getFont()->setBold(true);
+    $sheet->setCellValue("H$row", $totals['Total Outstanding Principal'])->getStyle("H$row")->getFont()->setBold(true);
+    $sheet->setCellValue("I$row", $totals['Total Principal Repaid'])->getStyle("H$row")->getFont()->setBold(true);
     $sheet->setCellValue("J$row", $totals['Total Payment Done'])->getStyle("J$row")->getFont()->setBold(true);
 
     // Adjust column widths and styles
@@ -175,13 +198,16 @@ function generatePDFHTML($data)
     }
 
     $html .= '<tr style="font-weight: bold;">
-                <td colspan="5" style="text-align: right;">Total:</td>
-                <td style="text-align: center;">' . $totals['Net Revenue'] . '</td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td colspan="1" style="text-align: right;">Total:</td>
+                <td style="text-align: center;"></td>
+                <td>' . $totals['Total Interest Collected'] . '</td>
+                <td>' . $totals['Total Penalties Collected'] . '</td>
+                <td>' . $totals['Total Referral Collected'] . '</td>
                 <td style="text-align: center;">' . $totals['Total Payment Done'] . '</td>
-                <td></td>
+                <td>' . $totals['Total EMI Count'] . '</td>
+                <td>' . $totals['Total Outstanding Principal'] . '</td>
+                <td>' . $totals['Total Principal Repaid'] . '</td>
+                <td>' . $totals['Total Net Revenue'] . '</td>
               </tr>';
 
     $html .= '</tbody></table>';

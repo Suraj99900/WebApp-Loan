@@ -114,7 +114,7 @@ $(document).ready(function () {
 
     $(document).on('click', '#borrowerUpdateId', function () {
         const borrowerId = $(this).data('id');
-
+    
         // Fetch borrower details to populate the update form
         $.ajax({
             url: 'ajaxFile/ajaxBorrower.php?sFlag=fetchBorrowerById',
@@ -124,7 +124,7 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     const borrower = response.data.borrowerDetails; // Main borrower details
                     const documents = response.data.uploadedDocuments; // Uploaded documents array
-
+    
                     // Build the update form in a row-wise layout
                     let formContent = `
                         <div class="row g-4 p-2 mb-4 shadow-sm">
@@ -181,18 +181,18 @@ $(document).ready(function () {
                                 <button type="submit" class="btn btn-primary ">Update Borrower</button>
                             </div>
                         </div>
-    
                     `;
-
+    
                     $('#updateBorrowerForm').html(formContent);
-
+    
                     // Show the offcanvas
                     const offcanvas = new bootstrap.Offcanvas($('#updateBorrowerOffcanvas'));
                     offcanvas.show();
-
+    
+                    // Add event listener for adding new document fields dynamically
                     $('#addDocumentForUpdateBtn').on('click', function () {
                         const newFileInput = `
-                            <div class="mb-3">
+                            <div class="mb-3 document-row">
                                 <div class="row">
                                     <div class="col-lg-6 col-sm-12">
                                         <label for="borrowerDocuments" class="form-label">Upload Document</label>
@@ -202,10 +202,18 @@ $(document).ready(function () {
                                         <label for="borrowerDocuments" class="form-label">Document Name</label>
                                         <input type="text" class="form-control" name="documentName[]" required>
                                     </div>
+                                    <div class="col-12 mt-2">
+                                        <button type="button" class="btn btn-danger btn-sm delete-document-row">Delete</button>
+                                    </div>
                                 </div>
                             </div>
                         `;
                         $('#fileInputsContainerForUpdate').append(newFileInput);
+                    });
+    
+                    // Event listener to delete the document row dynamically
+                    $('#fileInputsContainerForUpdate').on('click', '.delete-document-row', function () {
+                        $(this).closest('.document-row').remove();
                     });
                 } else {
                     responsePop('Error', 'Failed to load borrower details.', 'error', 'ok');
@@ -529,7 +537,7 @@ function eventFunction() {
 
     $('#addDocumentBtn,#addDocumentForUpdateBtn').on('click', function () {
         const newFileInput = `
-            <div class="mb-3">
+            <div class="mb-3 document-row">
                 <div class="row">
                     <div class="col-lg-6 col-sm-12">
                         <label for="borrowerDocuments" class="form-label">Upload Document</label>
@@ -539,10 +547,18 @@ function eventFunction() {
                         <label for="borrowerDocuments" class="form-label">Document Name</label>
                         <input type="text" class="form-control" name="documentName[]" required>
                     </div>
+                    <div class="col-12 mt-2">
+                        <button type="button" class="btn btn-danger btn-sm delete-document-row">Delete</button>
+                    </div>
                 </div>
             </div>
         `;
         $('#fileInputsContainer,#fileInputsContainerForUpdate').append(newFileInput);
+    });
+
+    // Event listener to delete the document row dynamically
+    $('#fileInputsContainer, #fileInputsContainerForUpdate').on('click', '.delete-document-row', function () {
+        $(this).closest('.document-row').remove();
     });
 }
 

@@ -85,10 +85,29 @@ function exportToExcel($data)
 
     // Add data rows
     $row = 3;
+    $totalPendingAmount = 0;
+    $totalPrincipalRepaid = 0;
+    $totalOutstandingPrincipal = 0;
+
     foreach ($data as $borrower) {
         $sheet->fromArray(array_values($borrower), null, "A$row");
+
+        // Add to totals
+        $totalPendingAmount += floatval($borrower['Pending Amount (Interest/EMI)']);
+        $totalPrincipalRepaid += floatval($borrower['Principal Repaid']);
+        $totalOutstandingPrincipal += floatval($borrower['Outstanding Principal']);
+
         $row++;
     }
+
+    // Add total row
+    $sheet->setCellValue('A' . $row, 'Total')
+        ->setCellValue('C' . $row, $totalPendingAmount)
+        ->setCellValue('D' . $row, $totalPrincipalRepaid)
+        ->setCellValue('E' . $row, $totalOutstandingPrincipal);
+
+    $sheet->getStyle("A$row:E$row")->getFont()->setBold(true);
+    $sheet->getStyle("A$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
     // Adjust column widths and styles
     foreach (range('A', 'G') as $col) {
@@ -96,12 +115,13 @@ function exportToExcel($data)
         $sheet->getStyle($col)->getAlignment()->setWrapText(true);
     }
 
-    $lastRow = $row - 1;
+    $lastRow = $row;
     $sheet->getStyle("A2:G$lastRow")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
     // Output file
     outputExcel($spreadsheet, 'Pending Payment');
 }
+
 
 function outputExcel($spreadsheet, $filename)
 {
@@ -129,12 +149,36 @@ function exportToPDF($data)
     $pdf->AddPage();
 
     $html = generatePDFHTML($data);
+
+    // Calculate totals
+    $totalPendingAmount = 0;
+    $totalPrincipalRepaid = 0;
+    $totalOutstandingPrincipal = 0;
+
+    foreach ($data as $borrower) {
+        $totalPendingAmount += floatval($borrower['Pending Amount (Interest/EMI)']);
+        $totalPrincipalRepaid += floatval($borrower['Principal Repaid']);
+        $totalOutstandingPrincipal += floatval($borrower['Outstanding Principal']);
+    }
+
+    // Add totals to the HTML
+    $html .= '<tr style="background-color: #f2f2f2; font-weight: bold; border:1px solid black;">
+            <td colspan="2" style="text-align:center; font-weight:bold; border:1px solid black;">Total</td>
+            <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalPendingAmount . '</td>
+            <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalPrincipalRepaid . '</td>
+            <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalOutstandingPrincipal . '</td>
+            <td colspan="2" style="border:1px solid black;"></td>
+          </tr>';
+
+
+    $html .= '</tbody></table>';
     $pdf->writeHTML($html, true, false, true, false, '');
 
     $filename = "Pending_Payment_" . date("Y-m-d_H-i-s") . ".pdf";
     $pdf->Output($filename, 'D');
     exit;
 }
+
 
 function generatePDFHTML($data)
 {

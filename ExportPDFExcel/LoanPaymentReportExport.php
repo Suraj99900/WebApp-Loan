@@ -8,19 +8,26 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use TCPDF;
 
+$iTotalLoanAmount = 0;
+$iTotalPenalty = 0;
+$iTotalReferral = 0;
+
 if (isset($_GET['export'])) {
     $exportType = $_GET['export'];
     $name = Input::request('name') ?? '';
-    $dFromDate = Input::request('sFromDate')??'';
-    $dToDate = Input::request('sToDateFilter')??'';
+    $dFromDate = Input::request('sFromDate') ?? '';
+    $dToDate = Input::request('sToDateFilter') ?? '';
     $paymentMode = Input::request('paymentMode') ?? '';
-    // Fetch loan details based on filters
 
     $oLoanPaymentManager = new LoanPaymentManager();
-    $paymentData = $oLoanPaymentManager->getAllLoanPaymentsGlobal($name, $dFromDate,$dToDate, $paymentMode);
+    $paymentData = $oLoanPaymentManager->getAllLoanPaymentsGlobal($name, $dFromDate, $dToDate, $paymentMode);
 
+    foreach ($paymentData as $value) {
+        $iTotalLoanAmount += $value['payment_amount'];
+        $iTotalPenalty += $value['penalty_amount'];
+        $iTotalReferral += $value['referral_share_amount'];
+    }
 
-    // Prepare filtered data
     $filteredData = array_map(function ($loan, $index) {
         return [
             'Sr. No'            => $index + 1,
@@ -28,13 +35,28 @@ if (isset($_GET['export'])) {
             'Payment Amount'    => number_format((float)($loan['payment_amount'] ?? 0), 2),
             'Penalty'           => number_format((float)($loan['penalty_amount'] ?? 0), 2),
             'Referral Share'    => number_format((float)($loan['referral_share_amount'] ?? 0), 2),
-            'Payment Mode'      => $loan['mode_of_payment'] ?? '', // Assuming mode is not numeric
-            'Comments'          => ucfirst($loan['comments']) ??'',
+            'Payment Mode'      => $loan['mode_of_payment'] ?? '',
+            'Comments'          => ucfirst($loan['comments']) ?? '',
             'Received Date'     => date('M d Y', strtotime($loan['received_date'] ?? '')),
             'Due Date'          => date('M d Y', strtotime($loan['interest_date'] ?? '')),
             'Status'            => ucfirst($loan['payment_status'] ?? 'Unknown'),
         ];
     }, $paymentData, array_keys($paymentData));
+
+    $totals = [
+        'Sr. No' => '',
+        'Borrower Name' => 'Total',
+        'Payment Amount' => number_format($iTotalLoanAmount, 2),
+        'Penalty' => number_format($iTotalPenalty, 2),
+        'Referral Share' => number_format($iTotalReferral, 2),
+        'Payment Mode' => '',
+        'Comments' => '',
+        'Received Date' => '',
+        'Due Date' => '',
+        'Status' => '',
+    ];
+
+    $filteredData[] = $totals;
 
     if ($exportType === 'excel') {
         exportToExcel($filteredData);
@@ -43,48 +65,38 @@ if (isset($_GET['export'])) {
     }
 }
 
-
-
-// Export to Excel
 function exportToExcel($data)
 {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
 
-    // Set title and headings
     $sheet->setCellValue('A1', 'Loan Payment Report');
-    $sheet->mergeCells('A1:F1');
+    $sheet->mergeCells('A1:J1');
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
     $sheet->getRowDimension('1')->setRowHeight(30);
 
-    // Add header row
     $headers = array_keys($data[0]);
     $sheet->fromArray($headers, null, 'A2');
 
-    // Add data rows
     $row = 3;
     foreach ($data as $record) {
         $sheet->fromArray(array_values($record), null, "A$row");
         $row++;
     }
 
-    // Auto-size columns
-    foreach (range('A', 'F') as $col) {
+    foreach (range('A', 'J') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
-    // Write file
     $writer = new Xlsx($spreadsheet);
     $filename = "Loan_Report_" . date("Y-m-d_H-i-s") . ".xlsx";
 
-    // Output to browser
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header("Content-Disposition: attachment; filename=$filename");
     $writer->save("php://output");
     exit;
 }
 
-// Export to PDF
 function exportToPDF($data)
 {
     $pdf = new TCPDF();
@@ -99,24 +111,17 @@ function exportToPDF($data)
     $pdf->SetAutoPageBreak(true, 20);
     $pdf->AddPage();
 
-    // Generate table HTML
     $html = '<h2 style="text-align:center;">Loan Payment Report</h2>';
     $html .= '<table border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse; font-size:10pt;">
                 <thead>
-                    <tr>
-                        <th>Sr.no</th>
-                        <th>Borrower Name</th>
-                        <th>Payment Amount</th>
-                        <th>Penalty</th>
-                        <th>Referral Share</th>
-                        <th>Payment Mode</th>
-                        <th>Comments</th>
-                        <th>Received Date</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>';
+                    <tr>';
+
+    foreach (array_keys($data[0]) as $header) {
+        $html .= "<th>$header</th>";
+    }
+
+    $html .= '</tr></thead><tbody>';
+
     foreach ($data as $row) {
         $html .= '<tr>';
         foreach ($row as $cell) {
@@ -124,14 +129,12 @@ function exportToPDF($data)
         }
         $html .= '</tr>';
     }
-    $html .= '</tbody>
-            </table>';
 
-    // Add HTML to PDF
+    $html .= '</tbody></table>';
+
     $pdf->writeHTML($html, true, false, true, false, '');
     $filename = "Loan_Report_" . date("Y-m-d_H-i-s") . ".pdf";
 
-    // Output to browser
     $pdf->Output($filename, 'D');
     exit;
 }

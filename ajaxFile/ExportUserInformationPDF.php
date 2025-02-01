@@ -60,30 +60,41 @@ if (isset($_REQUEST['borrower_id'])) {
     $pdf->SetFont('helvetica', 'B', 16);
     $pdf->Cell(0, 10, 'Loan Information', 0, 1, 'L');
     $pdf->SetFont('helvetica', '', 12);
-
+    $iTotalLoan = 0;
     if (count($aLoanDetails) > 0) {
-        $html = '<table cellpadding="5" cellspacing="0" border="1">';
+        $iTotalLoan = 0; // Initialize total loan amount
+        $html = '<table cellpadding="5" cellspacing="0" border="1" style="border-collapse: collapse; width: 100%;">';
+
         foreach ($aLoanDetails as $loan) {
+            $iTotalLoan += $loan['principal_amount'];
+
             $html .= '
                 <tr>
-                    <td><b>Principal Amount:</b> ' . $loan['principal_amount'] . '</td>
+                    <td><b>Principal Amount:</b> ' . number_format($loan['principal_amount'], 2) . '</td>
                     <td><b>Interest Rate:</b> ' . $loan['interest_rate'] . '%</td>
-                    <td><b>Interest Amount:</b> ' . $loan['EMI_amount'] . '</td>
+                    <td><b>Interest Amount:</b> ' . number_format($loan['EMI_amount'], 2) . '</td>
                 </tr>
                 <tr>
                     <td><b>Loan Period:</b> ' . $loan['loan_period'] . ' months</td>
-                    <td><b>Disbursed Date:</b> ' . $loan['disbursed_date'] . '</td>
-                    <td><b>Closure Date:</b> ' . $loan['closure_date'] . '</td>
+                    <td><b>Disbursed Date:</b> ' . date('d-m-Y', strtotime($loan['disbursed_date'])) . '</td>
+                    <td><b>Closure Date:</b> ' . date('d-m-Y', strtotime($loan['closure_date'])) . '</td>
                 </tr>
                 <tr>
                     <td colspan="3"><b>Loan Status:</b> ' . strtoupper($loan['loan_status']) . '</td>
                 </tr>
             ';
         }
+
+        $html .= '
+            <tr>
+                <td colspan="3" style="text-align: left;"><b>Total Loan Amount:</b> ' . number_format($iTotalLoan, 2) . '</td>
+            </tr>
+        ';
         $html .= '</table>';
     } else {
         $html = '<p>No Loan Present.</p>';
     }
+
     $pdf->writeHTML($html, true, false, true, false, '');
 
     // Referral Information
