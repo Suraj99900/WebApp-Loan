@@ -40,6 +40,10 @@ try {
                 ];
                 // Add Borrower
                 $iBorrowerId = $borrowerManage->addBorrower($aBorrowerData);
+                if (!$iBorrowerId) {
+                    $response['message'] = 'Phone number already present.';
+                    break;
+                }
 
                 // Handle file upload
                 $aDocumentDetail = [];

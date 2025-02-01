@@ -33,6 +33,7 @@ final class LoanPaymentManager
                     'payment_status' => ':payment_status',
                     'mode_of_payment' => ':mode_of_payment',
                     'comments' => ':comments',
+                    'document_path' => ':document_path',
                     'interest_date' => ':interest_date',
                     'status' => ':status',
                     'deleted' => ':deleted'
@@ -49,6 +50,7 @@ final class LoanPaymentManager
                 ->setParameter('mode_of_payment', $paymentData['mode_of_payment'])
                 ->setParameter('interest_date', $paymentData['interest_date'])
                 ->setParameter('comments', $paymentData['comments'])
+                ->setParameter('document_path', $paymentData['document_path'])
                 ->setParameter('status', 1)  // Default status as 1 (active)
                 ->setParameter('deleted', 0); // Default deleted as 0 (not deleted)
 

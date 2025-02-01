@@ -56,7 +56,8 @@ final class BorrowerManager
                 return false;
             }
         } catch (\Exception $e) {
-            die("Error: " . $e->getMessage());
+            return false;
+            // die("Error: " . $e->getMessage());
         }
     }
 

@@ -39,6 +39,8 @@ final class MIS
                 ->leftJoin('B', 'app_borrower_loan_payments', 'C', 'B.loan_id = C.loan_id')
                 ->leftJoin('B', 'app_revenue_report', 'D', 'B.loan_id = D.loan_id')
                 ->where('A.status = 1')
+                ->andWhere("A.deleted = 0")
+                ->andWhere("B.deleted = 0")
                 ->andWhere('B.status = 1')
                 ->groupBy('A.id, B.loan_id, D.report_id')
                 ->orderBy('D.calculated_on', 'DESC');
@@ -159,8 +161,7 @@ final class MIS
                 ->andWhere('L.status = 1') // Only active loans
                 ->andWhere('L.deleted = 0') // Only non-deleted loans
                 ->groupBy("DATE_FORMAT(P.received_date, '%Y-%m')") // Group by month
-                ->orderBy("DATE_FORMAT(P.received_date, '%Y-%m')", 'DESC'); // Order by latest month
-
+                ->orderBy("DATE_FORMAT(P.received_date, '%Y-%m')", 'DESC');
             if ($sFromDate != '' || $sToDate != '') {
                 $oQueryBuilder
                     ->andWhere('P.received_date between :fromDate and :toDate')
@@ -176,7 +177,11 @@ final class MIS
                     "SUM(ending_principal) AS total_pending_principal",
                     "sum(repaid_principal) as total_repaid_principal"
                 )
-                ->from("app_loan_details");
+                ->from("app_loan_details")
+                ->where('deleted = :deleted')
+                ->setParameter('deleted',0)
+                ->andWhere('status = :status')
+                ->setParameter('status',1);
 
             // Execute the query
             $oResult = $oQueryBuilder->executeQuery();

@@ -28,32 +28,31 @@ try {
 
             if (!empty($oLoanData)) {
                 $aPendingPayments = [];
-                $currentDate = date('Y-m-d'); // Get the current date
-                $currentMonth = date('m');
-                $currentYear = date('Y');
-                $defaultDay = DEFAULT_DAY;
-                $iDefaultPenalty = DEFAULT_PENALTY;
+                $currentDate = date('Y-m-d'); // Current date
+                $currentTimestamp = strtotime($currentDate);
+
+                $defaultDay = DEFAULT_DAY; // Assume DEFAULT_DAY = 10
+                $iDefaultPenalty = DEFAULT_PENALTY; // Penalty percentage
 
                 foreach ($oLoanData as $aLoan) {
-                    // Get the payment due date for the loan
-                    $paymentDueDate = $aLoan['payment_due_date'];
-
-                    // Apply penalty only if the payment due date is less than the current date 
-                    // and today's date is greater than the penalty date (which is the due date + penalty period)
-                    if ($paymentDueDate < $currentDate) {
-                        // Compare the current date with the due date + penalty date logic
-                        if (date('d') > $defaultDay) {
-                            // Apply the penalty
-                            $aLoan['penalty_amount'] = $aLoan['emi_amount'] * $iDefaultPenalty / 100;
-                        }
+                    $paymentDueDate = $aLoan['payment_due_date']; // Due date from DB
+                    $dueDateTimestamp = strtotime($paymentDueDate); // Convert due date to timestamp
+            
+                    // Default penalty date is the 10th of the due date's month/year
+                    $penaltyDate = date('Y-m-' . $defaultDay, strtotime($paymentDueDate));
+                    $penaltyDateTimestamp = strtotime($penaltyDate);
+            
+                    // Apply penalty if current date > penalty date AND due date has passed
+                    if ($currentTimestamp > $penaltyDateTimestamp && $currentTimestamp > $dueDateTimestamp) {
+                        $aLoan['penalty_amount'] = ($aLoan['emi_amount'] * $iDefaultPenalty) / 100;
                     } else {
-                        $aLoan['penalty_amount'] = 0; // No penalty if the payment due date is not passed
+                        $aLoan['penalty_amount'] = 0; // No penalty
                     }
-
+            
                     // Calculate referral share
                     $iRefPercentage = isset($aLoan['ref_percentage']) ? $aLoan['ref_percentage'] : 0;
                     $aLoan['refShare'] = ($aLoan['emi_amount']) * ($iRefPercentage / 100);
-
+            
                     $aPendingPayments[] = $aLoan;
                 }
 
@@ -81,29 +80,43 @@ try {
             $dPaymentDueDate = Input::request('payment_due_date') ? Input::request('payment_due_date') : "";
             $bCloserPayment = Input::request("bCloserPayment") ? Input::request("bCloserPayment") : false;
             $sComments = Input::request("sComments") ? Input::request("sComments") : "";
+            $sDocuments = $_FILES['documents'];  // Files for borrower documents
 
             if (!$iBorrowerId || !$iLoanId || !$fPaymentAmount) {
                 $response['message'] = 'Missing required fields.';
                 break;
             }
-            $aPaymentData = [
-                "loan_id" => $iLoanId,
-                "payment_amount" => $fPaymentAmount,
-                "penalty_amount" => ($fPenaltyAmount ? $fPenaltyAmount : 0),
-                "referral_share_amount" => $fReferralShare,
-                "final_amount" => ((float)$fPaymentAmount + (float)$fPenaltyAmount) - (float)$fReferralShare,
-                "received_date" => $dReceivedDate,
-                "interest_paid" => $fInterest_amount,
-                "principal_paid" => $fPrincipal_repaid,
-                "payment_status" => 'Completed',
-                "mode_of_payment" => $sPaymentMode,
-                "comments" => $sComments,
-                "interest_date" => $dPaymentDueDate
-            ];
 
-            // Process Payment
-            $oLoanPaymentManager = new LoanPaymentManager();
-            $iLastInsertId = $oLoanPaymentManager->addLoanPayment($aPaymentData);
+
+            $targetDir = "../uploads/payment_doc/";
+
+            $targetFile = $targetDir . date("Y-m-d_H-i-s")  . "_" . basename($sDocuments['name']);
+
+            if (move_uploaded_file($sDocuments['tmp_name'], $targetFile)) {
+                $sDocumentPath = "uploads/payment_doc/" . date("Y-m-d_H-i-s")  . "_" . basename($sDocuments['name']);
+
+                $aPaymentData = [
+                    "loan_id" => $iLoanId,
+                    "payment_amount" => $fPaymentAmount,
+                    "penalty_amount" => ($fPenaltyAmount ? $fPenaltyAmount : 0),
+                    "referral_share_amount" => $fReferralShare,
+                    "final_amount" => ((float)$fPaymentAmount + (float)$fPenaltyAmount) - (float)$fReferralShare,
+                    "received_date" => $dReceivedDate,
+                    "interest_paid" => $fInterest_amount,
+                    "principal_paid" => $fPrincipal_repaid,
+                    "payment_status" => 'Completed',
+                    "mode_of_payment" => $sPaymentMode,
+                    "comments" => $sComments,
+                    "interest_date" => $dPaymentDueDate,
+                    "document_path" => $sDocumentPath
+                ];
+
+                // Process Payment
+                $oLoanPaymentManager = new LoanPaymentManager();
+                $iLastInsertId = $oLoanPaymentManager->addLoanPayment($aPaymentData);
+            } else {
+                throw new Exception("Error uploading document: " . $documentName);
+            }
 
             if ($iLastInsertId) {
                 // Get Next EMI Details
@@ -202,6 +215,7 @@ try {
             $sPaymentMode = Input::request('payment_mode') ?: '';
             $dReceivedDate = Input::request('received_date') ?: '';
             $sComments = Input::request("sComments") ? Input::request("sComments") : "";
+            $sDocuments = $_FILES['documents'];
 
             if (!$iBorrowerId || !$iLoanId || !$fPaymentAmount || !$dReceivedDate) {
                 $response = [
@@ -226,20 +240,31 @@ try {
             // Calculate Outstanding Principal
             $outstandingPrincipal = $oLoanDetails['principal_amount'] - $oLoanDetails['repaid_principal'];
 
-            $aPaymentData = [
-                "loan_id" => $iLoanId,
-                "payment_amount" => $fPaymentAmount,
-                "penalty_amount" => 0,
-                "referral_share_amount" => 0,
-                "final_amount" => $fPaymentAmount,
-                "received_date" => $dReceivedDate,
-                "interest_paid" => 0,
-                "principal_paid" => $fPaymentAmount,
-                "payment_status" => 'Completed',
-                "mode_of_payment" => $sPaymentMode,
-                "comments" => $sComments,
-                "interest_date" => $oLoanDetails['closure_date'],
-            ];
+            $targetDir = "../uploads/payment_doc/";
+
+            $targetFile = $targetDir . date("Y-m-d_H-i-s")  . "_" . basename($sDocuments['name']);
+
+            if (move_uploaded_file($sDocuments['tmp_name'], $targetFile)) {
+                $sDocumentPath = "uploads/payment_doc/" . date("Y-m-d_H-i-s")  . "_" . basename($sDocuments['name']);
+
+                $aPaymentData = [
+                    "loan_id" => $iLoanId,
+                    "payment_amount" => $fPaymentAmount,
+                    "penalty_amount" => 0,
+                    "referral_share_amount" => 0,
+                    "final_amount" => $fPaymentAmount,
+                    "received_date" => $dReceivedDate,
+                    "interest_paid" => 0,
+                    "principal_paid" => $fPaymentAmount,
+                    "payment_status" => 'Completed',
+                    "mode_of_payment" => $sPaymentMode,
+                    "comments" => $sComments,
+                    "interest_date" => $oLoanDetails['closure_date'],
+                    "document_path" => $sDocumentPath
+                ];
+            } else {
+                throw new Exception("Error uploading document: " . $documentName);
+            }
 
             if ($bCloserPayment == 1) {
                 // Closer Payment

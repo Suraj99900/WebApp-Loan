@@ -4,29 +4,76 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9579dd09c87d0fa224778d18bcefc052
+class ComposerStaticInitded4cac653596a1e7517ad6402e310c2
 {
     public static $prefixLengthsPsr4 = array (
+        'Z' => 
+        array (
+            'ZipStream\\' => 10,
+        ),
         'P' => 
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
+            'Psr\\Http\\Message\\' => 17,
+            'Psr\\Http\\Client\\' => 16,
             'Psr\\Cache\\' => 10,
+            'PhpOffice\\PhpSpreadsheet\\' => 25,
+            'PHPMailer\\PHPMailer\\' => 20,
+        ),
+        'M' => 
+        array (
+            'Matrix\\' => 7,
         ),
         'D' => 
         array (
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\DBAL\\' => 14,
         ),
+        'C' => 
+        array (
+            'Composer\\Pcre\\' => 14,
+            'Complex\\' => 8,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'ZipStream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
+        ),
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
         ),
+        'Psr\\Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+        ),
+        'Psr\\Http\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-client/src',
+        ),
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
+        'PhpOffice\\PhpSpreadsheet\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'Matrix\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
         ),
         'Doctrine\\Deprecations\\' => 
         array (
@@ -35,6 +82,14 @@ class ComposerStaticInit9579dd09c87d0fa224778d18bcefc052
         'Doctrine\\DBAL\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/dbal/src',
+        ),
+        'Composer\\Pcre\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/pcre/src',
+        ),
+        'Complex\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
         ),
     );
 
@@ -59,9 +114,9 @@ class ComposerStaticInit9579dd09c87d0fa224778d18bcefc052
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9579dd09c87d0fa224778d18bcefc052::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9579dd09c87d0fa224778d18bcefc052::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9579dd09c87d0fa224778d18bcefc052::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitded4cac653596a1e7517ad6402e310c2::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitded4cac653596a1e7517ad6402e310c2::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitded4cac653596a1e7517ad6402e310c2::$classMap;
 
         }, null, ClassLoader::class);
     }

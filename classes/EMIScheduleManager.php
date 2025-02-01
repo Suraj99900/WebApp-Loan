@@ -350,7 +350,7 @@ final class EMIScheduleManager
         }
     }
 
-    public function getAllEMISchedulesByBorrowerId($iBorrowerId = '', $dFromDate = '', $dToDate = '', $sLoanAmount = '')
+    public function getAllEMISchedulesByBorrowerId($iBorrowerId = '', $dFromDate = '', $dToDate = '', $sLoanAmount = '',$bOnlyPending = false,$iOnlyPendingBorrowerId = '')
     {
         try {
             // Build the query with JOINs
@@ -383,6 +383,14 @@ final class EMIScheduleManager
                 $this->oQueryBuilder
                     ->andWhere("A.emi_amount = :emi_amount")
                     ->setParameter("emi_amount", $sLoanAmount);
+            }
+
+            if($bOnlyPending && $iOnlyPendingBorrowerId){
+                $this->oQueryBuilder
+                ->andWhere('A.payment_status = :sPaymentStatus')
+                ->setParameter('sPaymentStatus', "pending")
+                ->andWhere('C.id = :borrower_id')
+                ->setParameter('borrower_id', $iOnlyPendingBorrowerId);
             }
 
             // Execute the query
@@ -450,6 +458,33 @@ final class EMIScheduleManager
                 return $aRows; // Return all EMI schedules
             } else {
                 return [];
+            }
+        } catch (\Exception $e) {
+            die("Error: " . $e->getMessage());
+        }
+    }
+
+    public function invalidActiveLoan($iLoanId)
+    {
+        $sTableName = "app_loan_emi_schedule";
+
+        try {
+            // Build the query
+            $this->oQueryBuilder->update($sTableName)
+                ->set("deleted", ":deleted")
+                ->where('loan_id = :loan_id')
+                ->andWhere('status = :status')
+                ->setParameter('status', 1)
+                ->setParameter('deleted', 1)
+                ->setParameter('loan_id', $iLoanId);
+
+            // Execute the query
+            $oResult = $this->oQueryBuilder->executeQuery();
+
+            if ($oResult) {
+                return true; // Return all EMI schedules
+            } else {
+                return false;
             }
         } catch (\Exception $e) {
             die("Error: " . $e->getMessage());

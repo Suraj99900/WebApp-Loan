@@ -43,7 +43,14 @@ include_once "leftBar.php";
                             <div class="filter-section mb-4 py-4 px-4">
                                 <div class="row">
                                     <div class="col-sm-3 col-lg">
-                                        <label for="filterBorrowerName">Borrower Name</label>
+                                        <label for="filterByBorrowerNameOnlyPending">Borrower Name (Pending)</label>
+                                        <select id="borrowerSelectOnlyPendingId" class="form-select form-select-sm">
+                                            <option value="">Select Borrower</option>
+                                            <!-- Populate dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-3 col-lg">
+                                        <label for="filterBorrowerName">Borrower Name (All)</label>
                                         <select id="borrowerSelectId" class="form-select form-select-sm">
                                             <option value="">Select Borrower</option>
                                             <!-- Populate dynamically -->
@@ -61,12 +68,16 @@ include_once "leftBar.php";
                                         <label for="filterLoanDate">To Date</label>
                                         <input type="date" id="filterToDate" class="form-control">
                                     </div>
-                                    <div class="col-sm-3 col-lg">
-                                        <button id="searchId" class="btn btn-primary btn-sm mt-4"><i class="fa-solid fa-magnifying-glass"></i></button>
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-2 col-lg-10">
+                                        <button id="searchId" class="btn btn-primary btn-sm mt-4 "><i class="fa-solid fa-magnifying-glass"></i></button>
                                         <button id="filterRefresh" class="btn btn-primary btn-sm mt-4"><i class="fa-solid fa-arrows-rotate"></i></button>
                                     </div>
-                                    <div class="col-sm-3 col-lg">
-                                        <div class="mt-3 float-end">
+                                    <div class="col-sm-2 col-lg-2 float-end">
+                                        <div class="mt-3">
                                             <button id="exportToExcel" class="btn btn-success" title="Export to Excel"><i class="fa-solid fa-file-excel"></i></button>
                                             <button id="exportToPDF" class="btn btn-success" title="Export to PDF"><i class="fa-solid fa-file-pdf"></i></button>
                                         </div>
@@ -89,6 +100,7 @@ include_once "leftBar.php";
                                                         <th>OutStanding Principal</th>
                                                         <th>Due Date</th>
                                                         <th>Status</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="emiBodyId">
@@ -124,8 +136,10 @@ include_once "leftBar.php";
         var sFilterLoanAmount = $('#filterLoanAmount').val();
         var sFilterFromDate = $('#filterFromDate').val();
         var sFilterToDate = $('#filterToDate').val();
+        var sOnlyBorrowerId = $('#borrowerSelectOnlyPendingId').val();
+        var sOnlyPending = sOnlyBorrowerId ? true : false;
 
-        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=pdf&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount;
+        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=pdf&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount + "&sOnlyPending=" + sOnlyPending + "&sOnlyBorrowerId=" + sOnlyBorrowerId;
 
     });
 
@@ -134,8 +148,10 @@ include_once "leftBar.php";
         var sFilterLoanAmount = $('#filterLoanAmount').val();
         var sFilterFromDate = $('#filterFromDate').val();
         var sFilterToDate = $('#filterToDate').val();
+        var sOnlyBorrowerId = $('#borrowerSelectOnlyPendingId').val();
+        var sOnlyPending = sOnlyBorrowerId ? true : false;
 
-        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=excel&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount;
+        window.location.href = 'ExportPDFExcel/exportPendingPayment.php?export=excel&borrowerId=' + sFilterBorrowerId + '&sFromDate=' + sFilterFromDate + '&sToDate=' + sFilterToDate + '&sLoanAmount=' + sFilterLoanAmount + "&sOnlyPending=" + sOnlyPending + "&sOnlyBorrowerId=" + sOnlyBorrowerId;
 
     });
 </script>

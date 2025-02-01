@@ -269,7 +269,7 @@ final class LoanManager
             $this->oQueryBuilder->update($sTableName)
                 ->set("deleted", ":deleted")
                 ->where('loan_id = :loan_id')
-                ->setParameters('deleted', 1)
+                ->setParameter('deleted', 1)
                 ->setParameter('loan_id', $loanId);
 
             // Execute the query

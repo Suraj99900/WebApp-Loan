@@ -101,6 +101,7 @@ include_once "leftBar.php";
                                                         <th>Referral Share</th>
                                                         <th>Payment Mode</th>
                                                         <th>Comments</th>
+                                                        <th>Document</th>
                                                         <th>Received Date</th>
                                                         <th>Due Date</th>
                                                         <th>Status</th>
@@ -197,6 +198,13 @@ include_once "leftBar.php";
                     <textarea class="form-control" id="sComments" name="sComments" ></textarea>
                 </div>
 
+
+                <div class="col-lg-6 col-sm-12">
+                    <label for="borrowerDocuments" class="form-label">Upload Document</label>
+                    <input type="file" class="form-control" name="documents">
+                </div>
+               
+ 
                 <!-- Received Date -->
                 <div class="col-md-6">
                     <label for="receivedDate" class="form-label">Received Date</label>
@@ -277,6 +285,11 @@ include_once "leftBar.php";
                 <div class="col-md-6">
                     <label for="sComments" class="form-label">Comments</label>
                     <textarea class="form-control" id="sComments" name="sComments" ></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="Document" class="form-label">Upload Document</label>
+                    <input type="file" class="form-control" id="documentsId"  name="documents">
                 </div>
 
                 <!-- Received Date -->

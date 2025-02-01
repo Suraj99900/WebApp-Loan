@@ -165,3 +165,5 @@ CREATE TABLE app_referral_document (
 
 
 alter table app_borrower_loan_payments add column comments varchar(255) after mode_of_payment;
+
+alter table app_borrower_loan_payments add column document_path varchar(255) after comments ;

@@ -463,7 +463,7 @@ $(document).ready(function () {
                     // Optionally, reset the form
                     $('#addBorrowerForm')[0].reset();
                 } else {
-                    responsePop('Error', "Failed to add borrower:" + data.message, 'error', 'ok');
+                    responsePop('Error', "Failed to add borrower: " + data.message, 'error', 'ok');
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -548,6 +548,29 @@ function eventFunction() {
 
 
 function eventClick() {
+
+    $('.delete').on('click',function (){
+        const borrowerId = $(this).data('id'); // Get Borrower ID from button
+
+    
+        $.ajax({
+            url: 'ajaxFile/ajaxBorrower.php?sFlag=deleteBorrower',
+            type: 'GET',
+            data: { id: borrowerId},
+            success: function (response) {
+                if (response.status === 'success') {
+                    fetchAllBorrowerDetails();
+                } else {
+                    responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error:', textStatus, errorThrown);
+                responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
+            }
+        })
+    });
+
     $('.loanAgreementClass').on('click', function () {
         // Use 'this' to refer to the clicked element
         const borrowerId = $(this).data('id');
@@ -664,14 +687,14 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDa
                                 </button>
                                 <button class="btn btn-primary btn-sm icon-box mx-2" id="${hasReferralDetails ? 'borrowerUpdateReferralId' : 'borrowerAddReferralId'}" data-id="${borrower.id}" title="${hasReferralDetails ? 'Update Referral Details' : 'Add Referral Details'}">
                                     <i class="fa-solid fa-people-arrows"></i>
-                                </button>
-
-                                <button class="btn btn-primary btn-sm icon-box mx-2 loanAgreementClass  ${!hasLoanDetails ? 'd-none' : ''} " id="loanAgreementId" data-id="${borrower.id}" title="Export Agreement PDF">
-                                   <i class="fa-solid fa-file-contract"></i>
-                                </button>
+                                </button>                                
 
                                 <button class="btn btn-primary btn-sm icon-box mx-2  ${borrower.bIsPaid != 1 ? 'd-none' : ''}"  id="addTopUpId" data-id="${borrower.id}" title="Add TopUp">
                                     <i class="fa-solid fa-cash-register"></i>
+                                </button>
+
+                                <button class="btn btn-danger btn-sm icon-box mx-2 delete" id="deleteId" data-id="${borrower.id}" title="Delete">
+                                  <i class="fa-solid fa-trash"></i>
                                 </button>
                             </div>
                         `,

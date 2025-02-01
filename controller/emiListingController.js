@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const borrowerSelect = document.getElementById("borrowerSelectId");
+    const borrowerSelectOnlyPending = document.getElementById("borrowerSelectOnlyPendingId");
     const emiBodyId = document.getElementById("emiBodyId");
 
     $('#searchId').on('click',()=>{
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         $('#filterLoanAmount').val('');
         $('#filterFromDate').val('');
         $('#filterToDate').val('');
+        $('#borrowerSelectOnlyPendingId').val('');
         initializeEMITable();
     });
 
@@ -29,6 +31,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         option.value = borrower.id;
                         option.textContent = borrower.name;
                         borrowerSelect.appendChild(option);
+                    });
+                    data.data.forEach((borrower) => {
+                        const option = document.createElement("option");
+                        option.value = borrower.id;
+                        option.textContent = borrower.name;
+                        borrowerSelectOnlyPending.appendChild(option);
                     });
                 } else {
                     alert("Failed to load borrowers.");
@@ -51,6 +59,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    borrowerSelectOnlyPending.addEventListener("change", function () {         
+        initializeEMITable();
+    });
+
 
     // Initialize
     fetchBorrowers();
@@ -63,6 +75,8 @@ document.addEventListener("DOMContentLoaded", function () {
 function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate='',sFilterToDate='') {
 
     
+    var iOnlyBorrowerId = $('#borrowerSelectOnlyPendingId').val();
+
     // Destroy any existing instance of DataTable
     if ($.fn.DataTable.isDataTable('#emiDetailsTable')) {
         $('#emiDetailsTable').DataTable().destroy();
@@ -80,7 +94,9 @@ function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate
                 borrowerId: borrowerId,
                 sFromDate: sFilterFromDate,
                 sToDate: sFilterToDate,
-                sLoanAmount: sFilterLoanAmount
+                sLoanAmount: sFilterLoanAmount,
+                sOnlyPending: iOnlyBorrowerId ? true: false,
+                sOnlyBorrowerId : iOnlyBorrowerId
             }
         },
         columns: [
@@ -120,11 +136,49 @@ function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate
                         return `<span style="color: red;">${data.toUpperCase()}</span>`;
                     }
                 }
+            },
+            {
+                data: 'loan_id',
+                title: 'Action',
+                render: (data) => {
+                    
+                    return  `<button class="btn btn-danger btn-sm icon-box mx-2 delete" id="deleteId" data-id="${data}" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>`;
+                }
             }
         ],
         paging: true, // Enable pagination
         searching: true, // Enable searching
         lengthChange: true, // Enable change in number of rows per page
+        drawCallback: function () {
+            console.log('Table Drawn. Binding event handlers.');
+            eventClick(); // Ensure eventClick is called after each draw
+        }
+    });
+}
+
+function eventClick(){
+    $('.delete').on('click',function (){
+        const iLoanId = $(this).data('id'); // Get Borrower ID from button
+
+    
+        $.ajax({
+            url: 'ajaxFile/ajaxEMI.php?sFlag=invalidData',
+            type: 'GET',
+            data: { iLoanId: iLoanId},
+            success: function (response) {
+                if (response.status === 'success') {
+                    initializeEMITable();
+                } else {
+                    responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error:', textStatus, errorThrown);
+                responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
+            }
+        })
     });
 }
 

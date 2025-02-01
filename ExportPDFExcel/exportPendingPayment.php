@@ -16,9 +16,31 @@ if (isset($_GET['export'])) {
     $dFromDate = Input::request('sFromDate') ?? '';
     $dToDate = Input::request('sToDate') ?? '';
     $sLoanAmount = Input::request('sLoanAmount') ?? '';
+    $sOnlyBorrowerId = Input::request('sOnlyBorrowerId') ?? '';
+    $bOnlyPending = Input::request('sOnlyPending') ?? false;
 
     $emiManager = new EMIScheduleManager();
-    $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId, $dFromDate, $dToDate, $sLoanAmount);
+    $oEMISchedules = $emiManager->getAllEMISchedulesByBorrowerId($iBorrowerId, $dFromDate, $dToDate, $sLoanAmount,$bOnlyPending, $sOnlyBorrowerId);
+
+    if($bOnlyPending && $sOnlyBorrowerId){
+        foreach ($oEMISchedules as $loan) {
+            
+            if ($loan['payment_status'] === 'pending') {
+                $dueDate = new DateTime($loan['payment_due_date']);
+                $currentDate = new DateTime();
+                // Check if payment_due_date is more than one month past
+                while ($dueDate < $currentDate) {
+                    // Increment due date by one month
+                    $dueDate->modify('+1 month');
+                    $newRow = $loan;
+                    $newRow['payment_due_date'] = $dueDate->format('Y-m-d');
+                    $oEMISchedules[] = $newRow;
+
+                    
+                }
+            }
+        }
+    }
 
     $filteredBorrowers = formatBorrowerData($oEMISchedules);
 

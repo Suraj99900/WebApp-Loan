@@ -8,7 +8,7 @@ $(document).ready(function () {
         const sFromDateFilter = $('#filterFromDate').val();
         const sToDateFilter = $('#filterToDate').val();
         var paymentMode = $('#filterPaymentMode').val();
-        fetchLoanDetails(name, sFromDateFilter,sToDateFilter, paymentMode);
+        fetchLoanDetails(name, sFromDateFilter, sToDateFilter, paymentMode);
     });
 
     $('#filterReset').on('click', () => {
@@ -42,7 +42,7 @@ $(document).ready(function () {
                     results: data.data.map(function (item) {
                         return {
                             id: item.id,
-                            text: item.name+" ("+item.unique_borrower_id+")"
+                            text: item.name + " (" + item.unique_borrower_id + ")"
                         };
                     })
                 };
@@ -74,7 +74,7 @@ $(document).ready(function () {
 
                         return {
                             id: item.id,
-                            text: item.name+" ("+item.unique_borrower_id+")"
+                            text: item.name + " (" + item.unique_borrower_id + ")"
                         };
                     })
                 };
@@ -256,12 +256,14 @@ $(document).ready(function () {
 $('#addLoanPaymentForm').on('submit', function (e) {
     e.preventDefault();
 
-    const formData = $(this).serialize(); // Serialize form data for AJAX request
-
+    var formData = new FormData(this); // Serialize form data for AJAX request
+    formData.append('sFlag', 'addPayment');
     $.ajax({
-        url: 'ajaxFile/ajaxPayment.php?sFlag=addPayment',
+        url: 'ajaxFile/ajaxPayment.php',
         method: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         success: function (response) {
             alert('Payment added successfully!');
             location.reload(); // Reload the page or update the table dynamically
@@ -274,11 +276,14 @@ $('#addLoanPaymentForm').on('submit', function (e) {
 
 $('#closurePartPaymentForm').on('submit', function (e) {
     e.preventDefault();
-    const formData = $(this).serialize();
+    var formData = new FormData(this);
+    formData.append('sFlag', 'partOrCloserPayment');
     $.ajax({
-        url: 'ajaxFile/ajaxPayment.php?sFlag=partOrCloserPayment',
+        url: 'ajaxFile/ajaxPayment.php',
         type: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         success: function (response) {
             alert(response.message || 'payment submitted successfully!');
             $('#partPaymentOffcanvas').offcanvas('hide');
@@ -291,7 +296,7 @@ $('#closurePartPaymentForm').on('submit', function (e) {
 });
 
 
-function fetchLoanDetails(sName = '', sFromDateFilter='',sToDateFilter='', sPaymentMode = '') {
+function fetchLoanDetails(sName = '', sFromDateFilter = '', sToDateFilter = '', sPaymentMode = '') {
 
     if ($.fn.DataTable.isDataTable('#paymentDetailsTable')) {
         // Destroy the existing DataTable instance
@@ -302,26 +307,29 @@ function fetchLoanDetails(sName = '', sFromDateFilter='',sToDateFilter='', sPaym
         "processing": true,
         "serverSide": false,
         "ajax": {
-            url: 'ajaxFile/ajaxPayment.php?sFlag=fetchPaymentData', // Replace with the actual URL of your server-side handler
+            url: 'ajaxFile/ajaxPayment.php?sFlag=fetchPaymentData',
             method: 'POST',
             data: function (d) {
                 d.action = 'fetchPaymentData',
-                d.name = sName
-                d.sFromDate = sFromDateFilter
-                d.sToDate = sToDateFilter
-                d.paymentMode = sPaymentMode
-            }, // Send loan_id or other parameters
+                    d.name = sName;
+                d.sFromDate = sFromDateFilter;
+                d.sToDate = sToDateFilter;
+                d.paymentMode = sPaymentMode;
+            },
             dataSrc: function (json) {
-                var returnData = new Array();
+                var returnData = [];
                 for (var i = 0; i < json.data.length; i++) {
                     returnData.push([
                         i + 1, // Sr.no
-                        json.data[i].name+"<b> ("+json.data[i].unique_borrower_id+")</b>",
+                        json.data[i].name + "<b> (" + json.data[i].unique_borrower_id + ")</b>",
                         formatAmount(json.data[i].payment_amount),
                         formatAmount(json.data[i].penalty_amount),
                         formatAmount(json.data[i].referral_share_amount),
                         json.data[i].mode_of_payment,
                         json.data[i].comments,
+                        json.data[i].document_path
+                            ? "<a href='" + json.data[i].document_path + "' target='_blank'>View Document</a>"
+                            : "No Document",  // Handles if document_path is empty
                         moment(json.data[i].received_date).format('MMM DD YYYY'),
                         moment(json.data[i].interest_date).format('MMM DD YYYY'),
                         json.data[i].payment_status
@@ -338,13 +346,14 @@ function fetchLoanDetails(sName = '', sFromDateFilter='',sToDateFilter='', sPaym
             { "title": "Referral Share" },
             { "title": "Payment Mode" },
             { "title": "Comments" },
+            { "title": "Document" },
             { "title": "Received Date" },
             { "title": "Due Date" },
             { "title": "Status" }
         ],
         "responsive": true,
-        "pageLength": 10,
-        
+        "pageLength": 10
     });
+
 
 }
