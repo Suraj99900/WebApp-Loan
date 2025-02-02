@@ -114,7 +114,7 @@ $(document).ready(function () {
 
     $(document).on('click', '#borrowerUpdateId', function () {
         const borrowerId = $(this).data('id');
-    
+
         // Fetch borrower details to populate the update form
         $.ajax({
             url: 'ajaxFile/ajaxBorrower.php?sFlag=fetchBorrowerById',
@@ -124,7 +124,7 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     const borrower = response.data.borrowerDetails; // Main borrower details
                     const documents = response.data.uploadedDocuments; // Uploaded documents array
-    
+
                     // Build the update form in a row-wise layout
                     let formContent = `
                         <div class="row g-4 p-2 mb-4 shadow-sm">
@@ -182,13 +182,13 @@ $(document).ready(function () {
                             </div>
                         </div>
                     `;
-    
+
                     $('#updateBorrowerForm').html(formContent);
-    
+
                     // Show the offcanvas
                     const offcanvas = new bootstrap.Offcanvas($('#updateBorrowerOffcanvas'));
                     offcanvas.show();
-    
+
                     // Add event listener for adding new document fields dynamically
                     $('#addDocumentForUpdateBtn').on('click', function () {
                         const newFileInput = `
@@ -210,7 +210,7 @@ $(document).ready(function () {
                         `;
                         $('#fileInputsContainerForUpdate').append(newFileInput);
                     });
-    
+
                     // Event listener to delete the document row dynamically
                     $('#fileInputsContainerForUpdate').on('click', '.delete-document-row', function () {
                         $(this).closest('.document-row').remove();
@@ -565,26 +565,33 @@ function eventFunction() {
 
 function eventClick() {
 
-    $('.delete').on('click',function (){
+    $('.delete').on('click', function () {
         const borrowerId = $(this).data('id'); // Get Borrower ID from button
 
-    
-        $.ajax({
-            url: 'ajaxFile/ajaxBorrower.php?sFlag=deleteBorrower',
-            type: 'GET',
-            data: { id: borrowerId},
-            success: function (response) {
-                if (response.status === 'success') {
-                    fetchAllBorrowerDetails();
-                } else {
-                    responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+        // Confirmation alert
+        const confirmation = confirm('Are you sure you want to delete this borrower?');
+
+        if (confirmation) { // Proceed if user clicks "OK"
+            $.ajax({
+                url: 'ajaxFile/ajaxBorrower.php?sFlag=deleteBorrower',
+                type: 'GET',
+                data: { id: borrowerId },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        fetchAllBorrowerDetails();
+                    } else {
+                        responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('Error:', textStatus, errorThrown);
+                    responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
                 }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('Error:', textStatus, errorThrown);
-                responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
-            }
-        })
+            });
+        } else {
+            // Optional: Add a message when the user cancels the deletion
+            console.log('Deletion canceled by the user.');
+        }
     });
 
     $('.loanAgreementClass').on('click', function () {
@@ -595,7 +602,7 @@ function eventClick() {
         console.log($(this).data());
 
         $.ajax({
-            url: 'ajaxFile/loanAgreementPDF.php?borrower_id=' + borrowerId+"&loan_id="+iLoanId,
+            url: 'ajaxFile/loanAgreementPDF.php?borrower_id=' + borrowerId + "&loan_id=" + iLoanId,
             xhrFields: {
                 responseType: 'blob', // Set response type to blob for PDF
             },
@@ -630,7 +637,7 @@ function eventClick() {
         console.log($(this).data());
 
         $.ajax({
-            url: 'ajaxFile/ExportUserInformationPDF.php?borrower_id=' + borrowerId+"&loan_id="+iLoanId,
+            url: 'ajaxFile/ExportUserInformationPDF.php?borrower_id=' + borrowerId + "&loan_id=" + iLoanId,
             xhrFields: {
                 responseType: 'blob', // Set response type to blob for PDF
             },
@@ -686,7 +693,7 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDa
                         borrower.phone_no,
                         borrower.email,
                         formatAmount(borrower.total_principal) || '-',
-                        borrower.disbursed_date ? moment(borrower.disbursed_date).format('MMM DD YYYY') :'',
+                        borrower.disbursed_date ? moment(borrower.disbursed_date).format('MMM DD YYYY') : '',
                         borrower.disbursed_date ? moment(borrower.closure_date).format('MMM DD YYYY') : '',
                         (borrower.loan_status || 'inactive').toUpperCase(),
                         `

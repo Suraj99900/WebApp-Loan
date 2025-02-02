@@ -158,29 +158,37 @@ function initializeEMITable(borrowerId = '',sFilterLoanAmount='',sFilterFromDate
     });
 }
 
-function eventClick(){
-    $('.delete').on('click',function (){
-        const iLoanId = $(this).data('id'); // Get Borrower ID from button
+function eventClick() {
+    $('.delete').on('click', function () {
+        const iLoanId = $(this).data('id'); // Get Loan ID from button
 
-    
-        $.ajax({
-            url: 'ajaxFile/ajaxEMI.php?sFlag=invalidData',
-            type: 'GET',
-            data: { iLoanId: iLoanId},
-            success: function (response) {
-                if (response.status === 'success') {
-                    initializeEMITable();
-                } else {
-                    responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+        // Confirmation alert
+        const confirmation = confirm('Are you sure you want to delete this row ?');
+
+        if (confirmation) { // Proceed if user clicks "OK"
+            $.ajax({
+                url: 'ajaxFile/ajaxEMI.php?sFlag=invalidData',
+                type: 'GET',
+                data: { iLoanId: iLoanId },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        initializeEMITable();
+                    } else {
+                        responsePop('Error', 'Failed to delete. Please try again.', 'error', 'ok');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('Error:', textStatus, errorThrown);
+                    responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
                 }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('Error:', textStatus, errorThrown);
-                responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
-            }
-        })
+            });
+        } else {
+            // Optional: Add a message when the user cancels the action
+            console.log('Invalidation canceled by the user.');
+        }
     });
 }
+
 
 // Call the function when needed
 function fetchEMIs(borrowerId) {
