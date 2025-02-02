@@ -126,17 +126,18 @@ include_once "leftBar.php";
 
             <!-- Document Upload Section -->
             <div id="fileInputsContainer">
-                <div class="row align-items-end mb-3">
-                    <div class="col-lg-6 col-sm-12">
-                        <label for="referralDocumentsUpload" class="form-label">Upload Document</label>
+                <div class="row align-items-end mb-3 document-row">
+                    <div class="col-lg-5 col-sm-12">
+                        <label class="form-label">Upload Document</label>
                         <input type="file" class="form-control" name="documents[]" required>
                     </div>
-                    <div class="col-lg-4 col-sm-12">
-                        <label for="referralDocumentsName" class="form-label">Document Name</label>
+                    <div class="col-lg-5 col-sm-12">
+                        <label class="form-label">Document Name</label>
                         <input type="text" class="form-control" name="documentName[]" placeholder="Enter Document Name" required>
                     </div>
-                    <div class="col-lg-2 col-sm-2 text-end">
-                        <button type="button" id="addDocumentReferralId" class="btn btn-secondary"><i class="fa-solid fa-plus"></i></button>
+                    <div class="col-lg-2 col-sm-12 text-end">
+                        <button type="button" class="btn btn-secondary add-document"><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" class="btn btn-danger delete-document d-none"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             </div>
@@ -234,13 +235,13 @@ include_once "leftBar.php";
         // Export to Excel
         $('#exportReferralExcel').on('click', function() {
             var sName = $('#filterReferralName').val();
-            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=excel&name='+sName;
+            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=excel&name=' + sName;
         });
 
         // Export to PDF
         $('#exportReferralPDF').on('click', function() {
             var sName = $('#filterReferralName').val();
-            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=pdf&name='+sName;
+            window.location.href = 'ExportPDFExcel/ReferralExportController.php?export=pdf&name=' + sName;
         });
     });
 </script>

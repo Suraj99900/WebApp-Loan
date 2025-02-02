@@ -72,7 +72,7 @@ $(document).ready(() => {
                         documents.forEach(function (doc) {
                             var documentRow = `
                                 <div class="row align-items-end mb-3">
-                                     <div class="col-md-6">
+                                    <div class="col-md-6">
                                         <b>${doc.document_name}:</b>
                                         <a href="${doc.document_path}" target="_blank" class="text-primary">View Document</a>
                                     </div>
@@ -137,7 +137,7 @@ $(document).ready(() => {
             return;
         }
         var iDocumentId = $(this).data('id');
-        
+
 
         // Send AJAX request to delete the document
         $.ajax({
@@ -147,7 +147,7 @@ $(document).ready(() => {
             success: function (response) {
                 if (response.status === 'success') {
                     // Remove the row from the DOM
-                    
+
                     alert(response.message);
                     // Close the offcanvas
                     $('#updateReferralOffcanvas').offcanvas('hide');
@@ -211,6 +211,7 @@ function fetchAllReferralDetails(sName = '') {
                     ordering: true,
                     responsive: true,
                 });
+                eventClickUpdate();
             } else {
                 alert('No referrals found.');
             }
@@ -224,44 +225,68 @@ function fetchAllReferralDetails(sName = '') {
 
 
 function eventClick() {
-    console.log("call");
+    console.log("Event handlers initialized.");
 
-    $('#addDocumentReferralId').on('click', function () {
+    $(document).on('click', '.add-document', function () {
         const newFileInput = `
-            <div class="mb-3">
-                <div class="row">
-                    <div class="col-lg-6 col-sm-12">
-                        <label for="referralDocuments" class="form-label">Upload Document</label>
-                        <input type="file" class="form-control" name="documents[]" required>
-                    </div>
-                    <div class="col-lg-6 col-sm-12">
-                        <label for="referralDocuments" class="form-label">Document Name</label>
-                        <input type="text" class="form-control" name="documentName[]" required>
-                    </div>
+            <div class="row align-items-end mb-3 document-row">
+                <div class="col-lg-5 col-sm-12">
+                    <label class="form-label">Upload Document</label>
+                    <input type="file" class="form-control" name="documents[]" required>
+                </div>
+                <div class="col-lg-5 col-sm-12">
+                    <label class="form-label">Document Name</label>
+                    <input type="text" class="form-control" name="documentName[]" placeholder="Enter Document Name" required>
+                </div>
+                <div class="col-lg-2 col-sm-12 text-end">
+                    <button type="button" class="btn btn-danger delete-document"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `;
         $('#fileInputsContainer').append(newFileInput);
     });
+
+    $(document).on('click', '.delete-document', function () {
+        $(this).closest('.document-row').remove();
+    });
+
+    // Show delete button for newly added documents
+    $('#fileInputsContainer').on('DOMNodeInserted', function (e) {
+        $(e.target).find('.delete-document').removeClass('d-none');
+    });
 }
 
 
 function eventClickUpdate() {
-    $('#addNewDocumentReferralId').on('click', function () {
+    // Add New Document
+    $('#newFileInputsContainer').on('click', '#addNewDocumentReferralId', function () {
         const newFileInput = `
-            <div class="mb-3">
-                <div class="row">
+            <div class="mb-3 new-document-row">
+                <div class="row align-items-end">
                     <div class="col-lg-6 col-sm-12">
-                        <label for="referralDocuments" class="form-label">Upload Document</label>
+                        <label class="form-label">Upload Document</label>
                         <input type="file" class="form-control" name="documents[]" required>
                     </div>
-                    <div class="col-lg-6 col-sm-12">
-                        <label for="referralDocuments" class="form-label">Document Name</label>
+                    <div class="col-lg-4 col-sm-12">
+                        <label class="form-label">Document Name</label>
                         <input type="text" class="form-control" name="documentName[]" required>
+                    </div>
+                    <div class="col-lg-2 col-sm-2 text-end">
+                        <button type="button" class="btn btn-danger removeNewDocumentBtn"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             </div>
         `;
         $('#newFileInputsContainer').append(newFileInput);
+    });
+
+    // Remove Existing Document
+    $('#existingFileInputsContainer').on('click', '.removeDocumentBtn', function () {
+        $(this).closest('.row').remove();
+    });
+
+    // Remove New Document
+    $('#newFileInputsContainer').on('click', '.removeNewDocumentBtn', function () {
+        $(this).closest('.new-document-row').remove();
     });
 }

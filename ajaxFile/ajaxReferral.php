@@ -70,7 +70,7 @@ try {
             if ($iReferralID > 0) {
                 // Call the business logic method to fetch details
                 $oReferralDetails = (new ReferralUserManager())->getReferralUserByID($iReferralID);
-                $aDocumentData = (new DocumentReferral())->getAllDocumentsByBorrowerId($iReferralID);
+                $aDocumentData = (new DocumentReferral())->getAllDocumentsByReferralId($iReferralID);
                 $aData = [
                     "ReferralDetails" => $oReferralDetails,
                     "uploadedDocuments" => $aDocumentData
