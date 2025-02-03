@@ -374,7 +374,7 @@ final class EMIScheduleManager
 
             if ($dFromDate != "" && $dToDate != "") {
                 $this->oQueryBuilder
-                    ->andWhere("A.payment_due_date between :fromDate and :toDate")
+                    ->andWhere("payment_due_date between :fromDate and :toDate")
                     ->setParameter("fromDate", $dFromDate)
                     ->setParameter("toDate", $dToDate);
             }

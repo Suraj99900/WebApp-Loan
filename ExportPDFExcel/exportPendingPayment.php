@@ -56,10 +56,9 @@ function formatBorrowerData($borrowers)
     return array_map(function ($borrower, $index) {
         return [
             'Sr. No' => $index + 1,
-            'Borrower Name' => $borrower['name'] ?? '',
+            'Borrower Name' => $borrower['name'] ? $borrower['name'].' ('. $borrower['unique_borrower_id'].")" : '',
             'Pending Amount (Interest/EMI)' => $borrower['emi_amount'] ?? '',
             'Principal Repaid' => $borrower['principal_repaid'] ?? '',
-            'Outstanding Principal' => $borrower['ending_principal'] ?? '',
             'Due Date' => date('M d Y', strtotime($borrower['payment_due_date'])) ?? '',
             'Status' => $borrower['payment_status'] ?? '',
         ];
@@ -70,12 +69,14 @@ function exportToExcel($data)
 {
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
+    $bOnlyPending = Input::request('sOnlyPending') ?? false;
+    $sOnlyBorrowerId = Input::request('sOnlyBorrowerId') ?? '';
 
     // Set title
     $sheet->setCellValue('A1', 'Pending Payment')
         ->mergeCells('A1:G1')
         ->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-    $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle(cellCoordinate: 'A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
     // Add header row
     $headers = array_keys($data[0]);
@@ -103,8 +104,8 @@ function exportToExcel($data)
     // Add total row
     $sheet->setCellValue('A' . $row, 'Total')
         ->setCellValue('C' . $row, $totalPendingAmount)
-        ->setCellValue('D' . $row, $totalPrincipalRepaid)
-        ->setCellValue('E' . $row, $totalOutstandingPrincipal);
+        ->setCellValue('D' . $row, $totalPrincipalRepaid);
+        // ->setCellValue('E' . $row, (($bOnlyPending && $sOnlyBorrowerId) ? '' : $totalOutstandingPrincipal));
 
     $sheet->getStyle("A$row:E$row")->getFont()->setBold(true);
     $sheet->getStyle("A$row:E$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -147,6 +148,8 @@ function exportToPDF($data)
     $pdf->SetFooterMargin(10);
     $pdf->SetAutoPageBreak(true, 20);
     $pdf->AddPage();
+    $bOnlyPending = Input::request('sOnlyPending') ?? false;
+    $sOnlyBorrowerId = Input::request('sOnlyBorrowerId') ?? '';
 
     $html = generatePDFHTML($data);
 
@@ -166,7 +169,6 @@ function exportToPDF($data)
             <td colspan="2" style="text-align:center; font-weight:bold; border:1px solid black;">Total</td>
             <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalPendingAmount . '</td>
             <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalPrincipalRepaid . '</td>
-            <td style="text-align:center; font-weight:bold; border:1px solid black;">' . $totalOutstandingPrincipal . '</td>
             <td colspan="2" style="border:1px solid black;"></td>
           </tr>';
 
@@ -190,7 +192,6 @@ function generatePDFHTML($data)
                         <th>Borrower Name</th>
                         <th>Pending Amount (Interest/EMI)</th>
                         <th>Principal Repaid</th>
-                        <th>Outstanding Principal</th>
                         <th>Due Date</th>
                         <th>Status</th>
                     </tr>
