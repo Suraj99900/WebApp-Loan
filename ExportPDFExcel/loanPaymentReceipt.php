@@ -53,7 +53,8 @@ function generateLoanPaymentReceipt($oResult)
     $pdf->Cell($cellWidth, $cellHeight, 'Payment Mode: ' . $oResult['mode_of_payment'], 1, 0, 'L', 1);
     $pdf->Cell($cellWidth, $cellHeight, 'Payment Status: ' . $oResult['payment_status'], 1, 1, 'R', 1);
 
-    $pdf->Ln(5);
+    $pdf->Cell(0, $cellHeight, 'Comment: ' . $oResult['comments'], 1, 1, 'L', 1);
+    $pdf->Ln(15);
 
     /* -------------------------
        Borrower Details Section
@@ -75,22 +76,22 @@ function generateLoanPaymentReceipt($oResult)
     /* -------------------------
        Loan Overview Section
     ------------------------- */
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, $cellHeight, 'Loan Details', 0, 1, 'L');
-    $pdf->SetFont('helvetica', '', 12);
-    // Row 1: Loan Amount & Interest Rate
-    $pdf->Cell($cellWidth, $cellHeight, 'Loan Amount: Rs. ' . number_format($oResult['principal_amount'], 2), 1, 0, 'L', 1);
-    $pdf->Cell($cellWidth, $cellHeight, 'Interest Rate: ' . number_format($oResult['interest_rate'], 2) . '%', 1, 1, 'R', 1);
-    // Row 2: Loan Period & Disbursed Date
-    $pdf->Cell($cellWidth, $cellHeight, 'Loan Period: ' . $oResult['loan_period'] . ' Month', 1, 0, 'L', 1);
-    $pdf->Cell($cellWidth, $cellHeight, 'Disbursed: ' . date("M d, Y", strtotime($oResult['disbursed_date'])), 1, 1, 'R', 1);
-    // Row 3: EMI Amount & Closure Date
-    // $pdf->Cell($cellWidth, $cellHeight, 'EMI Amount: Rs. ' . number_format($oResult['EMI_amount'], 2), 1, 0, 'L', 1);
-    $pdf->Cell($cellWidth, $cellHeight, 'Closure Date: ' . date("M d, Y", strtotime($oResult['closure_date'])), 1, 0, 'L', 1);
-    // Optionally, show Closure Amount if needed
-    // $pdf->Cell(0, $cellHeight, 'Closure Amount: Rs. ' . number_format($oResult['closure_amount'], 2), 1, 1, 'L', 1);
+   //  $pdf->SetFont('helvetica', 'B', 14);
+   //  $pdf->Cell(0, $cellHeight, 'Loan Details', 0, 1, 'L');
+   //  $pdf->SetFont('helvetica', '', 12);
+   //  // Row 1: Loan Amount & Interest Rate
+   //  $pdf->Cell($cellWidth, $cellHeight, 'Loan Amount: Rs. ' . number_format($oResult['principal_amount'], 2), 1, 0, 'L', 1);
+   //  $pdf->Cell($cellWidth, $cellHeight, 'Interest Rate: ' . number_format($oResult['interest_rate'], 2) . '%', 1, 1, 'R', 1);
+   //  // Row 2: Loan Period & Disbursed Date
+   //  $pdf->Cell($cellWidth, $cellHeight, 'Loan Period: ' . $oResult['loan_period'] . ' Month', 1, 0, 'L', 1);
+   //  $pdf->Cell($cellWidth, $cellHeight, 'Disbursed: ' . date("M d, Y", strtotime($oResult['disbursed_date'])), 1, 1, 'R', 1);
+   //  // Row 3: EMI Amount & Closure Date
+   //  // $pdf->Cell($cellWidth, $cellHeight, 'EMI Amount: Rs. ' . number_format($oResult['EMI_amount'], 2), 1, 0, 'L', 1);
+   //  $pdf->Cell($cellWidth, $cellHeight, 'Closure Date: ' . date("M d, Y", strtotime($oResult['closure_date'])), 1, 0, 'L', 1);
+   //  // Optionally, show Closure Amount if needed
+   //  // $pdf->Cell(0, $cellHeight, 'Closure Amount: Rs. ' . number_format($oResult['closure_amount'], 2), 1, 1, 'L', 1);
 
-    $pdf->Ln(10);
+   //  $pdf->Ln(10);
 
     /* -------------------------
        Payment Summary Section
@@ -110,25 +111,28 @@ function generateLoanPaymentReceipt($oResult)
     // Row 1: Principal Paid
     $pdf->Cell(20, $cellHeight, '1', 1, 0, 'C', 1);
     $pdf->Cell(80, $cellHeight, 'Principal Paid', 1, 0, 'L', 1);
-    $pdf->Cell(90, $cellHeight, number_format($oResult['principal_paid'], 2), 1, 1, 'R', 1);
+    $pdf->Cell(90, $cellHeight, ($oResult['interest_paid'] == '0.00' ? number_format( $oResult['final_amount'] , 2):number_format(0,2)), 1, 1, 'R', 1);
     // Row 2: Interest Paid
     $pdf->Cell(20, $cellHeight, '2', 1, 0, 'C', 1);
-    $pdf->Cell(80, $cellHeight, 'Interest Paid', 1, 0, 'L', 1);
+    $pdf->Cell(80, $cellHeight, 'Monthly Payment', 1, 0, 'L', 1);
     $pdf->Cell(90, $cellHeight, number_format($oResult['interest_paid'], 2), 1, 1, 'R', 1);
     // Row 3: Penalty Amount
     $pdf->Cell(20, $cellHeight, '3', 1, 0, 'C', 1);
     $pdf->Cell(80, $cellHeight, 'Penalty Amount', 1, 0, 'L', 1);
     $pdf->Cell(90, $cellHeight, number_format($oResult['penalty_amount'], 2), 1, 1, 'R', 1);
     // Row 4: Referral Share
-    $pdf->Cell(20, $cellHeight, '4', 1, 0, 'C', 1);
-    $pdf->Cell(80, $cellHeight, 'Referral Share', 1, 0, 'L', 1);
-    $pdf->Cell(90, $cellHeight, number_format($oResult['referral_share_amount'], 2), 1, 1, 'R', 1);
+   //  $pdf->Cell(20, $cellHeight, '4', 1, 0, 'C', 1);
+   //  $pdf->Cell(80, $cellHeight, 'Referral Share', 1, 0, 'L', 1);
+   //  $pdf->Cell(90, $cellHeight, number_format($oResult['referral_share_amount'], 2), 1, 1, 'R', 1);
     
     // Final Amount row
     $pdf->SetFont('helvetica', 'B', 12);
     $pdf->SetFillColor(242, 242, 242);
     $pdf->Cell(100, $cellHeight, 'Final Amount (Rs.)', 1, 0, 'L', 1);
-    $pdf->Cell(90, $cellHeight, number_format($oResult['final_amount'], 2), 1, 1, 'R', 1);
+    $pdf->Cell(90, $cellHeight, number_format(
+      (is_numeric($oResult['interest_paid']) ? $oResult['interest_paid'] : 0) + 
+      (is_numeric($oResult['penalty_amount']) ? $oResult['penalty_amount'] : 0) ?: 
+      $oResult['final_amount'], 2), 1, 1, 'R', 1);
 
     $pdf->Ln(10);
     

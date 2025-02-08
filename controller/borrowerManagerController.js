@@ -1,3 +1,4 @@
+var bEventClass = false;
 $(document).ready(function () {
 
     // Fetch the Listing screen data...
@@ -564,8 +565,8 @@ function eventFunction() {
 
 
 function eventClick() {
-
-    $('.delete').on('click', function () {
+    // Unbind any existing click handlers and bind the delete event once.
+    $('.delete').off('click').on('click', function () {
         const borrowerId = $(this).data('id'); // Get Borrower ID from button
 
         // Confirmation alert
@@ -578,41 +579,33 @@ function eventClick() {
                 data: { id: borrowerId },
                 success: function (response) {
                     if (response.status === 'success') {
-                        fetchAllBorrowerDetails();
+                        fetchAllBorrowerDetails(); // Refresh data after deletion
                     } else {
-                        responsePop('Error', 'Failed to fetch loan details. Please try again.', 'error', 'ok');
+                        responsePop('Error', 'Failed to delete borrower. Please try again.', 'error', 'ok');
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.error('Error:', textStatus, errorThrown);
-                    responsePop('Error', 'Error fetching loan details.', 'error', 'ok');
+                    responsePop('Error', 'Error deleting borrower.', 'error', 'ok');
                 }
             });
         } else {
-            // Optional: Add a message when the user cancels the deletion
             console.log('Deletion canceled by the user.');
         }
     });
 
-    $('.loanAgreementClass').on('click', function () {
-        // Use 'this' to refer to the clicked element
+    // Unbind and bind the loanAgreementClass event
+    $('.loanAgreementClass').off('click').on('click', function () {
         const borrowerId = $(this).data('id');
         const iLoanId = $(this).data('loan-id');
-        console.log('Borrower ID:', borrowerId);
-        console.log($(this).data());
-
         $.ajax({
             url: 'ajaxFile/loanAgreementPDF.php?borrower_id=' + borrowerId + "&loan_id=" + iLoanId,
-            xhrFields: {
-                responseType: 'blob', // Set response type to blob for PDF
-            },
+            xhrFields: { responseType: 'blob' }, // Set response type to blob for PDF
             success: function (blob) {
-                console.log('Blob received:', blob);
                 if (!(blob instanceof Blob)) {
                     console.error('Error: Response is not a Blob object');
                     return;
                 }
-
                 // Create a link to download the PDF
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -629,30 +622,23 @@ function eventClick() {
         });
     });
 
-    $('.ExportUserInformation').on('click', function () {
-        // Use 'this' to refer to the clicked element
+    // Unbind and bind the ExportUserInformation event
+    $('.ExportUserInformation').off('click').on('click', function () {
         const borrowerId = $(this).data('id');
         const iLoanId = $(this).data('loan-id');
-        console.log('Borrower ID:', borrowerId);
-        console.log($(this).data());
-
         $.ajax({
             url: 'ajaxFile/ExportUserInformationPDF.php?borrower_id=' + borrowerId + "&loan_id=" + iLoanId,
-            xhrFields: {
-                responseType: 'blob', // Set response type to blob for PDF
-            },
+            xhrFields: { responseType: 'blob' },
             success: function (blob) {
-                console.log('Blob received:', blob);
                 if (!(blob instanceof Blob)) {
                     console.error('Error: Response is not a Blob object');
                     return;
                 }
-
                 // Create a link to download the PDF
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'Loan_Agreement.pdf';
+                a.download = 'Exported_User_Information.pdf';
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -664,6 +650,7 @@ function eventClick() {
         });
     });
 }
+
 
 
 function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDate = '') {
@@ -740,11 +727,20 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDa
 
 // Initialize the DataTable only once when the page loads
 $(document).ready(function () {
-    $('#borrowerDetailsTable').DataTable({
+    var dataTable = $('#borrowerDetailsTable').DataTable({
         paging: true,
         searching: false,
         ordering: true,
         responsive: true,
+    });
+
+    // Bind to the page.dt event to detect when pagination is clicked
+    dataTable.on('page.dt', function () {
+        console.log("Pagination event detected.");
+        setTimeout(() => {
+            bEventClass = false;
+            eventClick();
+        }, 100);
     });
 });
 

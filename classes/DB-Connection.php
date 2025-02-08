@@ -144,7 +144,20 @@ class DBConnection
             }
 
             // Send email
-            $mail->send();
+            $oReturn = $mail->send();
+
+            if ($oReturn) {
+                // After successfully sending the email, delete the ZIP file from the server
+                if (file_exists($zipFilePath)) {
+                    unlink($zipFilePath);
+                }
+
+                if (file_exists($dumpFilePath)) {
+                    unlink($dumpFilePath);
+                }
+            }
+
+
             return true;
         } catch (Exception $e) {
             return false;
