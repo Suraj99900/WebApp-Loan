@@ -90,10 +90,3 @@ The project utilizes the following Composer packages:
 
    Open your browser and navigate to `http://localhost:8000` to access the SM Loan Management System.
 
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgments
-
-Special thanks to the contributors and the open-source community for their invaluable support. 
