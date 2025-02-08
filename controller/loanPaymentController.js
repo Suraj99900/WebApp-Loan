@@ -2,6 +2,12 @@
 
 $(document).ready(function () {
 
+    $(document).on('click', '[id^="payment_Id_"]', function() {
+        let paymentId = $(this).attr('id').split('_')[2]; // Extract payment ID
+        window.open(`ExportPDFExcel/loanPaymentReceipt.php?payment_id=${paymentId}`, '_blank');
+    });
+    
+
 
     $('#filterSearch').on('click', () => {
         var name = $('#filterBorrowerName').val();
@@ -306,36 +312,33 @@ function fetchLoanDetails(sName = '', sFromDateFilter = '', sToDateFilter = '', 
     $('#paymentDetailsTable').DataTable({
         "processing": true,
         "serverSide": false,
+        "deferRender": true,  // Loads only required rows
+        "pageLength": 10,
         "ajax": {
             url: 'ajaxFile/ajaxPayment.php?sFlag=fetchPaymentData',
             method: 'POST',
             data: function (d) {
-                d.action = 'fetchPaymentData',
-                    d.name = sName;
+                d.action = 'fetchPaymentData';
+                d.name = sName;
                 d.sFromDate = sFromDateFilter;
                 d.sToDate = sToDateFilter;
                 d.paymentMode = sPaymentMode;
             },
             dataSrc: function (json) {
-                var returnData = [];
-                for (var i = 0; i < json.data.length; i++) {
-                    returnData.push([
-                        i + 1, // Sr.no
-                        json.data[i].name + "<b> (" + json.data[i].unique_borrower_id + ")</b>",
-                        formatAmount(json.data[i].payment_amount),
-                        formatAmount(json.data[i].penalty_amount),
-                        formatAmount(json.data[i].referral_share_amount),
-                        json.data[i].mode_of_payment,
-                        json.data[i].comments,
-                        json.data[i].document_path
-                            ? "<a href='" + json.data[i].document_path + "' target='_blank'>View Document</a>"
-                            : "No Document",  // Handles if document_path is empty
-                        moment(json.data[i].received_date).format('MMM DD YYYY'),
-                        moment(json.data[i].interest_date).format('MMM DD YYYY'),
-                        json.data[i].payment_status
-                    ]);
-                }
-                return returnData;
+                return json.data.map((item, index) => ([
+                    index + 1,
+                    `${item.name} <b>(${item.unique_borrower_id})</b>`,
+                    formatAmount(item.payment_amount),
+                    formatAmount(item.penalty_amount),
+                    formatAmount(item.referral_share_amount),
+                    item.mode_of_payment,
+                    item.comments,
+                    item.document_path ? `<a href='${item.document_path}' target='_blank'>View Document</a>` : "No Document",
+                    moment(item.received_date).format('MMM DD YYYY'),
+                    moment(item.interest_date).format('MMM DD YYYY'),
+                    item.payment_status,
+                    item.payment_id ? `<button id="payment_Id_${item.payment_id}" class="btn btn-primary btn-sm mt-1" title="Export Payment Receipt"><i class="fa-solid fa-file-pdf"></i></button>` : ''
+                ]));
             }
         },
         "columns": [
@@ -349,11 +352,12 @@ function fetchLoanDetails(sName = '', sFromDateFilter = '', sToDateFilter = '', 
             { "title": "Document" },
             { "title": "Received Date" },
             { "title": "Due Date" },
-            { "title": "Status" }
+            { "title": "Status" },
+            { "title": "Action" }
         ],
-        "responsive": true,
-        "pageLength": 10
+        "responsive": true
     });
+    
 
 
 }

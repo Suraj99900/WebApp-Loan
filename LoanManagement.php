@@ -105,6 +105,7 @@ include_once "leftBar.php";
                                                         <th>Received Date</th>
                                                         <th>Due Date</th>
                                                         <th>Status</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="paymentBodyId">

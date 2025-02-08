@@ -94,6 +94,33 @@ final class LoanPaymentManager
         }
     }
 
+    public function getLoanPaymentAndUserById($paymentId)
+    {
+        $sTableName = "app_borrower_loan_payments";
+
+        try {
+            // Build the query
+            $this->oQueryBuilder->select('*')
+                ->from($sTableName,"A")
+                ->leftJoin("A","app_loan_details","B","A.loan_id = B.loan_id")
+                ->leftJoin("B","app_borrower_master","C","B.borrower_id = C.id")
+                ->where('A.payment_id = :payment_id')
+                ->setParameter('payment_id', $paymentId);
+
+            // Execute the query
+            $oResult = $this->oQueryBuilder->executeQuery();
+            $aRow = $oResult->fetchAssociative();
+
+            if ($aRow) {
+                return $aRow;  // Return loan payment data
+            } else {
+                return [];
+            }
+        } catch (\Exception $e) {
+            die("Error: " . $e->getMessage());
+        }
+    }
+
     // Update loan payment details
     public function updateLoanPayment($paymentId, $paymentData)
     {
