@@ -281,7 +281,7 @@ include_once "leftBar.php";
                 <!-- Interest Rate -->
                 <div class="col-md-6">
                     <label for="interestRateUpdate" class="form-label">Interest Rate (%)</label>
-                    <input type="range" class="form-range" id="interestRateUpdate" name="interestRate" min="1" max="50" step="0.1" value="10">
+                    <input type="range" class="form-range" id="interestRateUpdate" name="interestRate" min="0" max="50" step="0.1" value="10">
                     <p class="text-center mb-0"><strong><span id="interestRateValueUpdate">10</span>%</strong></p>
                 </div>
 
@@ -350,7 +350,7 @@ include_once "leftBar.php";
                 <!-- Interest Rate -->
                 <div class="col-md-6">
                     <label for="loanInterestRate" class="form-label">Interest Rate (%)</label>
-                    <input type="range" class="form-range" id="loanInterestRate" name="interestRate" min="1" max="50" step="0.1" value="10">
+                    <input type="range" class="form-range" id="loanInterestRate" name="interestRate" min="0" max="50" step="0.1" value="10">
                     <p class="text-center mb-0"><strong><span id="interestRateValue">10</span>%</strong></p>
                 </div>
 
@@ -420,7 +420,7 @@ include_once "leftBar.php";
                 <!-- Interest Rate -->
                 <div class="col-md-6">
                     <label for="loanInterestRate" class="form-label">Interest Rate (%)</label>
-                    <input type="range" class="form-range" id="loanInterestRateTopUp" name="interestRate" min="1" max="50" step="0.1" value="10">
+                    <input type="range" class="form-range" id="loanInterestRateTopUp" name="interestRate" min="0" max="50" step="0.1" value="10">
                     <p class="text-center mb-0"><strong><span id="interestRateValueTopUp">10</span>%</strong></p>
                 </div>
 

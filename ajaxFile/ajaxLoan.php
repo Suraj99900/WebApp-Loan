@@ -17,14 +17,14 @@ try {
         case 'addLoanDetails':
             $iBorrowerId = Input::request('borrowerId') ?: '';
             $iPrincipalAmount = Input::request('loanPrincipalAmount') ?: '';
-            $iInterestRate = Input::request('interestRate') ?: '';
+            $iInterestRate = Input::request('interestRate') ?: 0;
             $iLoanPeriod = Input::request('loanPeriod') ?: '';
             $dDisbursedDate = Input::request('disbursedDate') ?: '';
             $dClosureDate = Input::request('closureDate') ?: '';
 
-            if ($iBorrowerId && $iPrincipalAmount && $iInterestRate && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
+            if ($iBorrowerId && $iPrincipalAmount && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
                 // Calculate Monthly Interest
-                $monthlyInterest = ($iPrincipalAmount * $iInterestRate) / 100;
+                $monthlyInterest = ((float)$iPrincipalAmount * (float)$iInterestRate) / 100;
 
                 // Calculate Total Closure Amount (Principal + Total Interest over the period)
                 $totalInterest = $monthlyInterest * $iLoanPeriod;
@@ -96,14 +96,14 @@ try {
         case 'updateLoanDetails':
             $iBorrowerId = Input::request('borrowerId') ?: '';
             $iPrincipalAmount = Input::request('principalAmount') ?: '';
-            $iInterestRate = Input::request('interestRate') ?: '';
+            $iInterestRate = Input::request('interestRate') ?: 0;
             $iLoanPeriod = Input::request('loanPeriod') ?: '';
             $dDisbursedDate = Input::request('disbursedDate') ?: '';
             $dClosureDate = Input::request('closureDate') ?: '';
             $LoanId = Input::request('LoanId') ?: '';
 
             // Check for required input values
-            if ($iBorrowerId && $iPrincipalAmount && $iInterestRate && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
+            if ($iBorrowerId && $iPrincipalAmount  && $iLoanPeriod && $dDisbursedDate && $dClosureDate) {
                 // Calculate EMI amount
                 $monthlyInterest = ($iPrincipalAmount * $iInterestRate) / 100;
 

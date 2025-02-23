@@ -95,7 +95,7 @@ final class EMIScheduleManager
 
         // Convert loan start date to DateTime object
         $loanStartDateTime = new DateTime($loanStartDate);
-        $iMonthlyInterest = ($remainingPrincipal * $interestRate) / 100;
+        $iMonthlyInterest = ((float)$remainingPrincipal * (float)$interestRate) / 100;
 
         $loanStartDateTime = new DateTime($loanStartDate);
         $loanStartDateTime->modify('first day of next month'); // Move to the first day of the next month

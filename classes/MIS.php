@@ -216,7 +216,8 @@ final class MIS
             $oQueryBuilder1
                 ->select('COUNT(DISTINCT B.id) AS totalBorrowers')
                 ->from('app_borrower_master', 'B')
-                ->where('B.status = 1');
+                ->where('B.status = 1')
+                ->andWhere("B.deleted = 0");
 
             // Execute the query for total borrowers
             $oResult_1 = $oQueryBuilder1->executeQuery();
