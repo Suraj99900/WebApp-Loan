@@ -699,7 +699,7 @@ function fetchAllBorrowerDetails(sName = '', sAmount = '', sFromDate = '', sToDa
                                     <i class="fa-solid fa-people-arrows"></i>
                                 </button>                                
 
-                                <button class="btn btn-primary btn-sm icon-box mx-2  ${borrower.bIsPaid != 1 ? 'd-none' : ''}"  id="addTopUpId" data-id="${borrower.id}" title="Add TopUp">
+                                <button class="btn btn-primary btn-sm icon-box mx-2  "  id="addTopUpId" data-id="${borrower.id}" title="Add TopUp">
                                     <i class="fa-solid fa-cash-register"></i>
                                 </button>
 
